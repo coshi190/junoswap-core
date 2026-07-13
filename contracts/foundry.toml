@@ -1,0 +1,25 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.19"
+optimizer = true
+optimizer_runs = 200
+
+[profile.default.fuzz]
+runs = 512
+
+[profile.default.invariant]
+runs = 256
+depth = 50
+# The handler intentionally explores reverting paths (e.g. over-selling), so a
+# revert is a valid outcome rather than a failed run.
+fail_on_revert = false
+
+[rpc_endpoints]
+kub-testnet = "https://rpc-testnet.bitkubchain.io"
+kub-mainnet = "https://rpc.bitkubchain.io"
+
+[etherscan]
+kub-testnet = { key = "verify", url = "https://testnet.bkcscan.com/api" }
+kub-mainnet = { key = "verify", url = "https://www.bkcscan.com/api" }

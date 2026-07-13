@@ -1,0 +1,108 @@
+{
+    "jibswap": [
+        {
+            "pair": "0xbb507f6bc443473532ae60d33ec6d36e2d3dbb0d",
+            "token0": "0x24599b658b57f91e7643f4f154b16bcd2884f9ac",
+            "token1": "0x99999999990fc47611b74827486218f3398a4abd"
+        },
+        {
+            "pair": "0xc2df3c4be65e7cd5e86889e350702b9d1949dc2b",
+            "token0": "0x99999999990fc47611b74827486218f3398a4abd",
+            "token1": "0xfd8ef75c1cb00a594d02df48addc27414bd07f8a"
+        }
+    ],
+    "udonswap": [
+        {
+            "pair": "0xa7906787409c60e165bf2e5bd819f7a15c8ae265",
+            "token0": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "token1": "0x7d984c24d2499d840eb3b7016077164e15e5faa6"
+        },
+        {
+            "pair": "0x38121450Ab09dDb96Be720163e80c2551caef02A",
+            "token0": "0x9BEc198c43B0714aEEd3c1bF21498ecBeFEB19F8",
+            "token1": "0xC8925E89bE4Ce76218a3e52B995C5Ae02662A94F"
+        }
+    ],
+    "ponder": [
+        {
+            "pair": "0xe9813764621855f9b630a3cf621b537d65f655f0",
+            "token0": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "token1": "0x7d984c24d2499d840eb3b7016077164e15e5faa6"
+        }
+    ],
+    "diamon": [
+        {
+            "pair": "0x286b67516b979a8271805660d3ac0c626f2d38e6",
+            "token0": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "token1": "0x7d984c24d2499d840eb3b7016077164e15e5faa6"
+        },
+        {
+            "pair": "0x833e7a2e986d38d027c824bc258c2156be4adffe",
+            "token0": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "token1": "0x95013dcb6a561e6c003aed9c43fb8b64008aa361"
+        },
+        {
+            "pair": "0x7bf51541208a70b784006ef7bd6f774f4012cd38",
+            "token0": "0x7d984c24d2499d840eb3b7016077164e15e5faa6",
+            "token1": "0x95013dcb6a561e6c003aed9c43fb8b64008aa361"
+        }
+    ],
+    "kublerx": [
+        {
+            "pool": "0xe1d8681b96ac84ecad8a1aaf70faae4803f395ca",
+            "token0": "0x21cdc3706b8c7b1836df0e533dd884069521350b",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 100,
+            "tickSpacing": 1
+        },
+        {
+            "pool": "0x7b7c3ef4dd11b2c994e5d93468f1e9586713bf0b",
+            "token0": "0x21cdc3706b8c7b1836df0e533dd884069521350b",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 500,
+            "tickSpacing": 10
+        },
+        {
+            "pool": "0x2e722645c6d04134bddf790d7a7ba5ccd8969b6d",
+            "token0": "0x21cdc3706b8c7b1836df0e533dd884069521350b",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 3000,
+            "tickSpacing": 60
+        },
+        {
+            "pool": "0xec8a602a02ce0f376d2d420018b3eecef30dad4e",
+            "token0": "0x21cdc3706b8c7b1836df0e533dd884069521350b",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 10000,
+            "tickSpacing": 200
+        },
+        {
+            "pool": "0xc2d9d33c9a5ec97a6cc67d9ae2277b839621e8ed",
+            "token0": "0x31929a0fd776f971c5dd14bf03e1f9ff69d9c91c",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 100,
+            "tickSpacing": 1
+        },
+        {
+            "pool": "0x8d56d2fba2b43ce8ddc0863bd4eb3959b5799924",
+            "token0": "0x31929a0fd776f971c5dd14bf03e1f9ff69d9c91c",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 500,
+            "tickSpacing": 10
+        },
+        {
+            "pool": "0x2477f78598f72b75d65bf35cb18fe9e75ac96cb8",
+            "token0": "0x31929a0fd776f971c5dd14bf03e1f9ff69d9c91c",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 3000,
+            "tickSpacing": 60
+        },
+        {
+            "pool": "0xaf51222f6a47a2f200d7c7e97c89c2912e1d0f1a",
+            "token0": "0x31929a0fd776f971c5dd14bf03e1f9ff69d9c91c",
+            "token1": "0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5",
+            "fee": 10000,
+            "tickSpacing": 200
+        }
+    ]
+}
