@@ -20,7 +20,8 @@ const ABI_DIR = path.join(ROOT, 'packages/sdk/src/abis')
 const TARGETS: Record<string, [string, string]> = {
     BondingCurveJunoswap: ['bonding-curve-junoswap', 'BONDING_CURVE_JUNOSWAP_ABI'],
     AggRouterJunoswap: ['agg-router-junoswap', 'AGG_ROUTER_JUNOSWAP_ABI'],
-    ERC20Token: ['erc20', 'ERC20_ABI'],
+    // erc20.ts extends this with a nonstandard entry — see the hand-written module.
+    ERC20Token: ['erc20-token', 'ERC20_TOKEN_ABI'],
     IUniswapV2Factory: ['uniswap-v2-factory', 'UNISWAP_V2_FACTORY_ABI'],
     IUniswapV2Pair: ['uniswap-v2-pair', 'UNISWAP_V2_PAIR_ABI'],
     IUniswapV3Factory: ['uniswap-v3-factory', 'UNISWAP_V3_FACTORY_ABI'],
@@ -33,6 +34,7 @@ const TARGETS: Record<string, [string, string]> = {
 }
 
 const HAND_WRITTEN = [
+    'erc20',
     'uniswap-v2-router',
     'uniswap-v3-quoter',
     'uniswap-v3-swap-router',

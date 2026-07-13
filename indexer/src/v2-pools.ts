@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ponder } from 'ponder:registry'
 import schema from 'ponder:schema'
-import { parseTrackingTag, resolveBinding } from './tracking.js'
+import { parseTrackingTag, resolveBinding } from '@junoswap/sdk'
 import { upsertToken } from './v3-pools.js'
 import { getSeedV2Pool, getSeedV2Dex } from './seed.js'
 

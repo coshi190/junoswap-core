@@ -22,6 +22,7 @@
     "scripts": {
         "build": "rm -rf dist && tsc -p tsconfig.build.json",
         "typecheck": "tsc --noEmit",
+        "test": "vitest --run",
         "prepublishOnly": "bun run build"
     },
     "peerDependencies": {
@@ -31,6 +32,7 @@
         "graphql-request": "^7.4.0"
     },
     "devDependencies": {
+        "vitest": "^2.1.0",
         "typescript": "^5.8.0",
         "viem": "^2.25.0"
     },

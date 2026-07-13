@@ -2,7 +2,7 @@
 import { ponder } from 'ponder:registry'
 import schema from 'ponder:schema'
 import { readERC20Metadata } from './erc20-read.js'
-import { parseTrackingTag, resolveBinding } from './tracking.js'
+import { parseTrackingTag, resolveBinding } from '@junoswap/sdk'
 import { WRAPPED_NATIVE_ADDRESSES, STABLECOIN_ADDRESSES } from '@junoswap/sdk'
 
 const Q96 = 2n ** 96n
