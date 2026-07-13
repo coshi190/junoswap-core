@@ -1,0 +1,240 @@
+// Generated from indexer/ponder.schema.ts by `bun run codegen`. Do not edit by hand.
+//
+// One type per indexed table. Query field lists in ./queries are constrained against
+// these (`satisfies readonly (keyof X)[]`), so a column renamed in the indexer breaks
+// the build instead of silently returning undefined.
+
+export interface AggSwapEvent {
+    id: string
+    chainId: number
+    sender: string
+    tokenIn: string
+    tokenOut: string
+    amountIn: string
+    amountOut: string
+    fee: string
+    legs: number
+    referrer: string | null
+    blockNumber: number
+    timestamp: number
+    transactionHash: string
+}
+
+export interface LaunchToken {
+    tokenAddr: string
+    chainId: number
+    creator: string
+    name: string | null
+    symbol: string | null
+    logo: string | null
+    description: string | null
+    link1: string | null
+    link2: string | null
+    link3: string | null
+    createdTime: number
+    isGraduated: number | null
+    graduatedAt: number | null
+    createdAtBlock: number
+}
+
+export interface NativeUsdPrice {
+    chainId: number
+    price: string
+    poolAddress: string
+    updatedAt: number
+}
+
+export interface NativeUsdPriceSnapshot {
+    id: string
+    chainId: number
+    price: string
+    timestamp: number
+    blockNumber: number
+}
+
+export interface ReferralBinding {
+    referee: string
+    referrer: string
+    boundAtBlock: number
+    boundAtTimestamp: number
+    chainId: number
+}
+
+export interface SwapEvent {
+    id: string
+    chainId: number
+    tokenAddr: string
+    sender: string
+    isBuy: number
+    amountIn: string
+    amountOut: string
+    reserveIn: string
+    reserveOut: string
+    blockNumber: number
+    timestamp: number
+    transactionHash: string
+}
+
+export interface TokenHolder {
+    id: string
+    chainId: number
+    tokenAddr: string
+    address: string
+    balance: string
+}
+
+export interface TokenSnapshot {
+    tokenAddr: string
+    chainId: number
+    lastPrice: string | null
+    lastPriceUsd: string | null
+    marketCapNative: string | null
+    athMarketCapNative: string | null
+    totalBuys: number | null
+    totalSells: number | null
+    totalVolumeNative: string | null
+    holderCount: number | null
+    creatorFeeNative: string | null
+    creatorFeeClaimedNative: string | null
+    creatorFeeToken: string | null
+    creatorFeeClaimedToken: string | null
+    lastSwapAt: number | null
+    price1dAgo: string | null
+    price1dAgoTimestamp: number | null
+    priceChange1dPct: string | null
+    updatedAt: number
+}
+
+export interface TransferEvent {
+    id: string
+    chainId: number
+    tokenAddr: string
+    from: string
+    to: string
+    amount: string
+    blockNumber: number
+    timestamp: number
+    transactionHash: string
+}
+
+export interface V2Pool {
+    id: string
+    chainId: number
+    address: string
+    token0: string
+    token1: string
+    createdAtBlock: number
+    createdAtTimestamp: number
+    protocol: string
+}
+
+export interface V2SwapEvent {
+    id: string
+    chainId: number
+    poolAddress: string
+    tokenAddr: string
+    tokenIsToken0: number
+    sender: string
+    to: string
+    txFrom: string
+    amount0In: string
+    amount1In: string
+    amount0Out: string
+    amount1Out: string
+    blockNumber: number
+    timestamp: number
+    transactionHash: string
+    viaFrontend: number
+    referrer: string | null
+    token0Addr: string
+    token1Addr: string
+    protocol: string
+}
+
+export interface V3Pool {
+    id: string
+    chainId: number
+    address: string
+    token0: string
+    token1: string
+    fee: number
+    tickSpacing: number
+    createdAtBlock: number
+    createdAtTimestamp: number
+    protocol: string
+}
+
+export interface V3PoolDayVolume {
+    id: string
+    chainId: number
+    poolAddress: string
+    dayTimestamp: number
+    volumeToken0: string
+    volumeToken1: string
+    swapCount: number
+    updatedAt: number
+}
+
+export interface V3SwapEvent {
+    id: string
+    chainId: number
+    poolAddress: string
+    tokenAddr: string
+    tokenIsToken0: number
+    sender: string
+    recipient: string
+    txFrom: string
+    amount0: string
+    amount1: string
+    sqrtPriceX96: string
+    liquidity: string
+    tick: number
+    blockNumber: number
+    timestamp: number
+    transactionHash: string
+    viaFrontend: number
+    referrer: string | null
+    token0Addr: string | null
+    token1Addr: string | null
+    protocol: string
+}
+
+export interface V3Token {
+    id: string
+    chainId: number
+    address: string
+    symbol: string | null
+    name: string | null
+    decimals: number | null
+    createdAt: number
+}
+
+export interface V3TokenSnapshot {
+    id: string
+    chainId: number
+    tokenAddr: string
+    lastPriceNative: string | null
+    lastPriceUsd: string | null
+    lastSwapAt: number | null
+    updatedAt: number
+}
+
+/** GraphQL root field -> entity, for reference. Ponder pluralises a table as tsName + "s". */
+export interface PonderRootFields {
+    aggSwapEvents: 'AggSwapEvent'
+    launchTokens: 'LaunchToken'
+    nativeUsdPrices: 'NativeUsdPrice'
+    nativeUsdPriceSnapshots: 'NativeUsdPriceSnapshot'
+    referralBindings: 'ReferralBinding'
+    swapEvents: 'SwapEvent'
+    tokenHolders: 'TokenHolder'
+    tokenSnapshots: 'TokenSnapshot'
+    transferEvents: 'TransferEvent'
+    v2Pools: 'V2Pool'
+    v2SwapEvents: 'V2SwapEvent'
+    v3Pools: 'V3Pool'
+    v3PoolDayVolumes: 'V3PoolDayVolume'
+    v3SwapEvents: 'V3SwapEvent'
+    v3Tokens: 'V3Token'
+    v3TokenSnapshots: 'V3TokenSnapshot'
+}

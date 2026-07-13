@@ -53,8 +53,8 @@ jobs:
             - name: Codegen is up to date
               run: |
                   bun run codegen
-                  git diff --exit-code packages/sdk/src/abis \
-                    || (echo "::error::ABIs are stale — run 'forge build && bun run codegen' and commit." && exit 1)
+                  git diff --exit-code packages/sdk/src/abis packages/sdk/src/ponder/entities.ts \
+                    || (echo "::error::Generated code is stale — run 'forge build && bun run codegen' and commit." && exit 1)
 
             - name: Typecheck
               run: bun run --filter @junoswap/sdk typecheck
