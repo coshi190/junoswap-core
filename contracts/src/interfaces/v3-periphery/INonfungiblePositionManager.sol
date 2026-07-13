@@ -175,4 +175,10 @@ interface INonfungiblePositionManager is
     /// must be collected first.
     /// @param tokenId The ID of the token that is being burned
     function burn(uint256 tokenId) external payable;
+
+    /// @notice Batches calls into one transaction. Inherited from IMulticall upstream; declared here
+    /// because the frontend batches mint/collect/unwrap through it.
+    /// @param data The encoded function calls to execute
+    /// @return results The raw return data of each call
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
 }

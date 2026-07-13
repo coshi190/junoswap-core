@@ -1,0 +1,40 @@
+{
+    "name": "@junoswap/sdk",
+    "version": "0.1.0",
+    "description": "Chain-facing primitives for Junoswap: contract ABIs, deployment addresses, DEX/chain config, shared types, and the Ponder indexer client.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/coshi190/junoswap-core.git",
+        "directory": "packages/sdk"
+    },
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": ["dist"],
+    "sideEffects": false,
+    "scripts": {
+        "build": "rm -rf dist && tsc -p tsconfig.build.json",
+        "typecheck": "tsc --noEmit",
+        "prepublishOnly": "bun run build"
+    },
+    "peerDependencies": {
+        "viem": "^2.25.0"
+    },
+    "dependencies": {
+        "graphql-request": "^7.4.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.0",
+        "viem": "^2.25.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

@@ -1,0 +1,196 @@
+// DEX protocol deployments per chain. Single source of truth for both the frontend and
+// the indexer — the indexer used to hardcode these same factory addresses in ponder.config.ts.
+
+import type { RawDexRegistry } from './dex-config'
+
+export const DEX_REGISTRY_DATA = {
+    "junoswap": {
+        "defaultProtocol": "v3",
+        "priority": 1,
+        "protocols": {
+            "kubTestnet": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0xCBd41F872FD46964bD4Be4d72a8bEBA9D656565b",
+                    "quoter": "0x3F64C4Dfd224a102A4d705193a7c40899Cf21fFe",
+                    "swapRouter": "0x3C5514335dc4E2B0D9e1cc98ddE219c50173c5Be",
+                    "positionManager": "0x690f45C21744eCC4ac0D897ACAC920889c3cFa4b",
+                    "staker": "0xe445e132E9D4d0863E0BE079faf716A97250f37E",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 3000
+                }
+            },
+            "jbc": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0x5835f123bDF137864263bf204Cf4450aAD1Ba3a7",
+                    "quoter": "0x5ad32c64A2aEd381299061F32465A22B1f7A2EE2",
+                    "swapRouter": "0x2174b3346CCEdBB4Faaff5d8088ff60B74909A9d",
+                    "positionManager": "0xfC445018B20522F9cEd1350201e179555a7573A1",
+                    "staker": "0xC7Aa8C815937B61F70E04d814914683bB9Bd7579",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 3000
+                }
+            },
+            "bitkub": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0x090C6E5fF29251B1eF9EC31605Bdd13351eA316C",
+                    "quoter": "0xCB0c6E78519f6B4c1b9623e602E831dEf0f5ff7f",
+                    "swapRouter": "0x3F7582E36843FF79F173c7DC19f517832496f2D8",
+                    "positionManager": "0xb6b76870549893c6b59E7e979F254d0F9Cca4Cc9",
+                    "staker": "0xC216ad61623617Aa01b757A06836AA8D6fb547fF",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 3000
+                }
+            }
+        }
+    },
+    "uniswap": {
+        "defaultProtocol": "v3",
+        "priority": 1,
+        "protocols": {
+            "worldchain": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0x7a5028BDa40e7B173C278C5342087826455ea25a",
+                    "quoter": "0x10158D43e6cc414deE1Bd1eB0EfC6a5cBCfF244c",
+                    "swapRouter": "0x091AD9e2e6e5eD44c1c66dB50e49A601F9f36cF6",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 3000
+                }
+            },
+            "base": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0x33128a8fC17869897dcE68Ed026d694621f6FDfD",
+                    "quoter": "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
+                    "swapRouter": "0x2626664c2603336E57B271c5C0b26F421741e481",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 3000
+                }
+            }
+        }
+    },
+    "jibswap": {
+        "defaultProtocol": "v2",
+        "priority": 2,
+        "protocols": {
+            "jbc": {
+                "v2": {
+                    "enabled": true,
+                    "factory": "0x4BBdA880C5A0cDcEc6510f0450c6C8bC5773D499",
+                    "router": "0x766F8C9321704DC228D43271AF9b7aAB0E529D38",
+                    "wnative": "0x99999999990FC47611b74827486218f3398A4abD"
+                }
+            }
+        }
+    },
+    "udonswap": {
+        "defaultProtocol": "v2",
+        "priority": 3,
+        "protocols": {
+            "bitkub": {
+                "v2": {
+                    "enabled": true,
+                    "factory": "0x18c7a4CA020A0c648976208dF2e3AE1BAA32e8d1",
+                    "router": "0x7aA32A818cD3a6BcdF827f6a411B7adFF56e7A4A"
+                }
+            }
+        }
+    },
+    "ponder": {
+        "defaultProtocol": "v2",
+        "priority": 4,
+        "protocols": {
+            "bitkub": {
+                "v2": {
+                    "enabled": true,
+                    "factory": "0x20B17e92Dd1866eC647ACaA38fe1f7075e4B359E",
+                    "router": "0xD19C5cebFa9A8919Cc3db2F19163089feBd9604E"
+                }
+            }
+        }
+    },
+    "diamon": {
+        "defaultProtocol": "v2",
+        "priority": 5,
+        "protocols": {
+            "bitkub": {
+                "v2": {
+                    "enabled": true,
+                    "factory": "0x6E906Dc4749642a456907deCB323A0065dC6F26E",
+                    "router": "0xAb30a29168D792c5e6a54E4bcF1Aec926a3b20FA"
+                }
+            }
+        }
+    },
+    "pancakeswap": {
+        "defaultProtocol": "v3",
+        "priority": 1,
+        "protocols": {
+            "bsc": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
+                    "quoter": "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997",
+                    "swapRouter": "0x1b81D678ffb9C0263b24A97847620C99d213eB14",
+                    "feeTiers": [
+                        100,
+                        500,
+                        2500,
+                        10000
+                    ],
+                    "defaultFeeTier": 2500
+                }
+            }
+        }
+    },
+    "kublerx": {
+        "defaultProtocol": "v3",
+        "priority": 2,
+        "protocols": {
+            "bitkub": {
+                "v3": {
+                    "enabled": true,
+                    "factory": "0xD679d310008A2595B8d3DeB83bb93EB23F9b0942",
+                    "quoter": "0x63661462C66f13eD121f394Dc57726c1c33672de",
+                    "swapRouter": "0xe81f80172c88Df5D12b3Ab5FE5D1D8Eb7087823f",
+                    "positionManager": "0xA8fa5d2774f850Fba2bC572e38b1dB340233e837",
+                    "feeTiers": [
+                        100,
+                        500,
+                        3000,
+                        10000
+                    ],
+                    "defaultFeeTier": 500
+                }
+            }
+        }
+    }
+} as const satisfies RawDexRegistry

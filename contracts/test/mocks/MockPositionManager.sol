@@ -202,4 +202,14 @@ contract MockPositionManager is INonfungiblePositionManager {
     function supportsInterface(bytes4) external pure returns (bool) {
         return false;
     }
+
+    // IMulticall
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results) {
+        results = new bytes[](data.length);
+        for (uint256 i = 0; i < data.length; i++) {
+            (bool success, bytes memory result) = address(this).delegatecall(data[i]);
+            require(success, "MockPositionManager: multicall failed");
+            results[i] = result;
+        }
+    }
 }

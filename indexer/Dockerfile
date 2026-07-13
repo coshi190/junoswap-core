@@ -1,11 +1,24 @@
+# Build context is the REPO ROOT, not indexer/ — the indexer resolves @junoswap/sdk through
+# the bun workspace. On Railway: root directory "/", Dockerfile path "indexer/Dockerfile".
+#
+#   docker build -f indexer/Dockerfile .
 FROM oven/bun:1
 
 WORKDIR /app
 
-COPY package.json ./
-RUN bun install
+# Manifests first so a source-only change doesn't bust the install layer.
+COPY package.json bun.lock ./
+COPY packages/sdk/package.json ./packages/sdk/
+COPY indexer/package.json ./indexer/
+RUN bun install --frozen-lockfile
 
-COPY . .
+COPY packages/sdk ./packages/sdk
+COPY indexer ./indexer
+
+# The indexer imports @junoswap/sdk's build output, not its source.
+RUN bun run --filter @junoswap/sdk build
+
+WORKDIR /app/indexer
 
 EXPOSE 42069
 

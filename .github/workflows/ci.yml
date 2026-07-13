@@ -1,0 +1,84 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+    contracts:
+        name: Contracts
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+            - uses: foundry-rs/foundry-toolchain@v1
+            # No `forge fmt --check`: the deployed contracts predate any fmt pass, and
+            # reformatting them changes the source metadata hash, which would break exact-match
+            # source verification on bkcscan against the already-deployed bytecode.
+            - name: Build
+              run: forge build
+              working-directory: contracts
+            - name: Test
+              run: forge test -vvv
+              working-directory: contracts
+
+    sdk:
+        name: SDK
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+            - uses: foundry-rs/foundry-toolchain@v1
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.x
+            - run: bun install --frozen-lockfile
+
+            # The ABIs are generated from the contracts. If regenerating them produces a diff,
+            # a .sol change landed without the SDK being rebuilt — the exact drift this repo exists
+            # to prevent.
+            - name: Build contracts
+              run: forge build
+              working-directory: contracts
+            - name: Codegen is up to date
+              run: |
+                  bun run codegen
+                  git diff --exit-code packages/sdk/src/abis \
+                    || (echo "::error::ABIs are stale — run 'forge build && bun run codegen' and commit." && exit 1)
+
+            - name: Typecheck
+              run: bun run --filter @junoswap/sdk typecheck
+            - name: Build
+              run: bun run --filter @junoswap/sdk build
+
+    indexer:
+        name: Indexer
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.x
+            - run: bun install --frozen-lockfile
+            - name: Build SDK
+              run: bun run --filter @junoswap/sdk build
+            - name: Codegen
+              run: bun run codegen
+              working-directory: indexer
+            - name: Typecheck
+              run: bun run typecheck
+              working-directory: indexer
+            - name: Test
+              run: bun run test
+              working-directory: indexer

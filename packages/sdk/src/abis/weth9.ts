@@ -1,0 +1,92 @@
+// Generated from contracts/src by `bun run codegen`. Do not edit by hand.
+// Source artifact: IWETH9.sol
+
+export const WETH9_ABI = [
+    {
+        type: 'function',
+        name: 'approve',
+        inputs: [
+            {
+                name: '',
+                type: 'address',
+                internalType: 'address',
+            },
+            {
+                name: '',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+        ],
+        outputs: [
+            {
+                name: '',
+                type: 'bool',
+                internalType: 'bool',
+            },
+        ],
+        stateMutability: 'nonpayable',
+    },
+    {
+        type: 'function',
+        name: 'balanceOf',
+        inputs: [
+            {
+                name: '',
+                type: 'address',
+                internalType: 'address',
+            },
+        ],
+        outputs: [
+            {
+                name: '',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+    },
+    {
+        type: 'function',
+        name: 'deposit',
+        inputs: [],
+        outputs: [],
+        stateMutability: 'payable',
+    },
+    {
+        type: 'function',
+        name: 'transfer',
+        inputs: [
+            {
+                name: '',
+                type: 'address',
+                internalType: 'address',
+            },
+            {
+                name: '',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+        ],
+        outputs: [
+            {
+                name: '',
+                type: 'bool',
+                internalType: 'bool',
+            },
+        ],
+        stateMutability: 'nonpayable',
+    },
+    {
+        type: 'function',
+        name: 'withdraw',
+        inputs: [
+            {
+                name: '',
+                type: 'uint256',
+                internalType: 'uint256',
+            },
+        ],
+        outputs: [],
+        stateMutability: 'nonpayable',
+    },
+] as const

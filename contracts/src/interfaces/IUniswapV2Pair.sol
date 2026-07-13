@@ -2,6 +2,17 @@
 pragma solidity 0.8.19;
 
 interface IUniswapV2Pair {
+    /// @dev Not called on-chain — declared so the generated ABI can decode it off-chain
+    /// (the indexer builds V2 volume/price history from these).
+    event Swap(
+        address indexed sender,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address indexed to
+    );
+
     function token0() external view returns (address);
     function token1() external view returns (address);
 
