@@ -4,11 +4,11 @@ The chain-facing half of [Junoswap](https://junoswap.trade): the contracts, the 
 frontend and indexer both build on, and the indexer itself.
 
 The frontend lives in a separate repo ([`junoswap`](https://github.com/coshi190/junoswap)) and
-consumes this one through the published `@junoswap/sdk` package.
+consumes this one through the published `@coshi190/junoswap-sdk` package.
 
 ```
 contracts/      Foundry — BondingCurveJunoswap, AggRouterJunoswap, ERC20Token
-packages/sdk/   @junoswap/sdk — ABIs, deployment addresses, DEX/chain config, Ponder client
+packages/sdk/   @coshi190/junoswap-sdk — ABIs, deployment addresses, DEX/chain config, Ponder client
 indexer/        Ponder indexer (GraphQL API, deployed to Railway)
 scripts/        gen-abis.ts — contracts/out → packages/sdk/src/abis
 ```
@@ -50,7 +50,7 @@ All in `packages/sdk/src/addresses/`:
 - `dex-config.data.ts` — third-party DEX factories/routers per chain. The indexer reads its
   factory addresses from here too, so the two can't drift.
 
-After a deploy: update `deployments.ts` → publish a new `@junoswap/sdk` → bump the frontend.
+After a deploy: update `deployments.ts` → publish a new `@coshi190/junoswap-sdk` → bump the frontend.
 
 ## Indexer
 
@@ -62,7 +62,7 @@ cd indexer && bun run dev
 ```
 
 Railway builds it from `indexer/Dockerfile` with the **repo root as build context** (the
-Dockerfile needs to see the workspace to resolve `@junoswap/sdk`).
+Dockerfile needs to see the workspace to resolve `@coshi190/junoswap-sdk`).
 
 ## Publishing the SDK
 

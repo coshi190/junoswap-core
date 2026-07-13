@@ -16,7 +16,7 @@ import {
     getV2Config,
     getV3Config,
     type DEXType,
-} from '@junoswap/sdk'
+} from '@coshi190/junoswap-sdk'
 import externalPools from './external-pools.json'
 
 const seed = (dex: keyof typeof externalPools) =>

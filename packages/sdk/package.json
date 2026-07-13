@@ -1,5 +1,5 @@
 {
-    "name": "@junoswap/sdk",
+    "name": "@coshi190/junoswap-sdk",
     "version": "0.1.0",
     "description": "Chain-facing primitives for Junoswap: contract ABIs, deployment addresses, DEX/chain config, shared types, and the Ponder indexer client.",
     "license": "MIT",

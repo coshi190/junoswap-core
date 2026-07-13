@@ -57,9 +57,9 @@ jobs:
                     || (echo "::error::Generated code is stale — run 'forge build && bun run codegen' and commit." && exit 1)
 
             - name: Typecheck
-              run: bun run --filter @junoswap/sdk typecheck
+              run: bun run --filter @coshi190/junoswap-sdk typecheck
             - name: Build
-              run: bun run --filter @junoswap/sdk build
+              run: bun run --filter @coshi190/junoswap-sdk build
 
     indexer:
         name: Indexer
@@ -72,7 +72,7 @@ jobs:
                   bun-version: 1.x
             - run: bun install --frozen-lockfile
             - name: Build SDK
-              run: bun run --filter @junoswap/sdk build
+              run: bun run --filter @coshi190/junoswap-sdk build
             - name: Codegen
               run: bun run codegen
               working-directory: indexer

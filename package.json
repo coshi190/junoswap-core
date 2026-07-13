@@ -5,7 +5,7 @@
     "workspaces": ["packages/*", "indexer"],
     "scripts": {
         "codegen": "bun run scripts/gen-abis.ts && bun run scripts/gen-ponder-types.ts",
-        "build": "bun run --filter @junoswap/sdk build",
+        "build": "bun run --filter @coshi190/junoswap-sdk build",
         "typecheck": "bun run --filter '*' typecheck",
         "test": "bun run --filter '*' test",
         "format": "prettier --write .",

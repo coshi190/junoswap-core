@@ -4,7 +4,7 @@ import schema from 'ponder:schema'
 import { formatEther, zeroAddress } from 'viem'
 import { readERC20Metadata } from './erc20-read.js'
 import { creatorFeeShareForSwap, VIRTUAL_AMOUNT } from './creator-fee.js'
-import { BONDING_CURVE_ADDRESS_BY_CHAIN, CHAIN_IDS, isLaunchpadChain } from '@junoswap/sdk'
+import { BONDING_CURVE_ADDRESS_BY_CHAIN, CHAIN_IDS, isLaunchpadChain } from '@coshi190/junoswap-sdk'
 
 const MAINNET_ENABLED = isLaunchpadChain(CHAIN_IDS.bitkub)
 
