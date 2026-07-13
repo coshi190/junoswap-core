@@ -80,8 +80,8 @@ async function main() {
         `// Barrel for the ABI modules. Generated files are rebuilt by \`bun run codegen\`;`,
         `// the hand-written ones have no Solidity source in this repo.`,
         ``,
-        ...generated.sort().map((f) => `export * from './${f}'`),
-        ...HAND_WRITTEN.map((f) => `export * from './${f}'`),
+        ...generated.sort().map((f) => `export * from './${f}.js'`),
+        ...HAND_WRITTEN.map((f) => `export * from './${f}.js'`),
         ``,
     ].join('\n')
     await writeFile(path.join(ABI_DIR, 'index.ts'), index)

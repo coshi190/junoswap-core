@@ -1,6 +1,6 @@
-import type { PonderClient } from '../client'
-import type { LaunchToken, TokenSnapshot, NativeUsdPrice, SwapEvent } from '../entities'
-import { sel, type Items, type Row } from './internal'
+import type { PonderClient } from '../client.js'
+import type { LaunchToken, TokenSnapshot, NativeUsdPrice, SwapEvent } from '../entities.js'
+import { sel, type Items, type Row } from './internal.js'
 
 /** Everything the launchpad UI shows about a token. */
 const DETAIL_FIELDS = [

@@ -1,6 +1,6 @@
-import type { PonderClient } from '../client'
-import type { SwapEvent, V3SwapEvent } from '../entities'
-import { sel, type Items, type Page, type Row } from './internal'
+import type { PonderClient } from '../client.js'
+import type { SwapEvent, V3SwapEvent } from '../entities.js'
+import { sel, type Items, type Page, type Row } from './internal.js'
 
 /** Bonding-curve price series: price is derived from the reserves on each swap. */
 const BC_HISTORY_FIELDS = [

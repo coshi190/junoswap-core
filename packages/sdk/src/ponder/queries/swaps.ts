@@ -1,12 +1,12 @@
-import type { PonderClient } from '../client'
+import type { PonderClient } from '../client.js'
 import type {
     AggSwapEvent,
     SwapEvent,
     TransferEvent,
     V2SwapEvent,
     V3SwapEvent,
-} from '../entities'
-import { sel, type CountedItems, type Items, type Page, type Row } from './internal'
+} from '../entities.js'
+import { sel, type CountedItems, type Items, type Page, type Row } from './internal.js'
 
 /**
  * Filters are built as objects and passed as a GraphQL `$where` variable. The frontend used to

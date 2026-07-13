@@ -1,6 +1,6 @@
-import type { PonderClient } from '../client'
-import type { V3Pool, V3PoolDayVolume, V3Token } from '../entities'
-import { sel, type Items, type Row } from './internal'
+import type { PonderClient } from '../client.js'
+import type { V3Pool, V3PoolDayVolume, V3Token } from '../entities.js'
+import { sel, type Items, type Row } from './internal.js'
 
 const POOL_FIELDS = [
     'address',

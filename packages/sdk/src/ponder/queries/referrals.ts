@@ -1,6 +1,6 @@
-import type { PonderClient } from '../client'
-import type { ReferralBinding } from '../entities'
-import { sel, type Page, type Row } from './internal'
+import type { PonderClient } from '../client.js'
+import type { ReferralBinding } from '../entities.js'
+import { sel, type Page, type Row } from './internal.js'
 
 const BINDING_FIELDS = [
     'referee',

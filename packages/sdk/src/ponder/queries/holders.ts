@@ -1,6 +1,6 @@
-import type { PonderClient } from '../client'
-import type { TokenHolder, TokenSnapshot } from '../entities'
-import { sel, type Items, type Row } from './internal'
+import type { PonderClient } from '../client.js'
+import type { TokenHolder, TokenSnapshot } from '../entities.js'
+import { sel, type Items, type Row } from './internal.js'
 
 const BALANCE_FIELDS = [
     'tokenAddr',

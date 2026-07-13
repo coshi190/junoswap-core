@@ -1,7 +1,7 @@
 import type { Address } from 'viem'
-import type { DEXType } from '../types/dex'
-import { CHAIN_IDS } from '../chains'
-import { DEX_REGISTRY_DATA } from './dex-config.data'
+import type { DEXType } from '../types/dex.js'
+import { CHAIN_IDS } from '../chains.js'
+import { DEX_REGISTRY_DATA } from './dex-config.data.js'
 
 export enum ProtocolType {
     V2 = 'v2',

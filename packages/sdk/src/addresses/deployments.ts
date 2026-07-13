@@ -1,5 +1,5 @@
 import { zeroAddress, type Address } from 'viem'
-import { CHAIN_IDS } from '../chains'
+import { CHAIN_IDS } from '../chains.js'
 
 /**
  * Deployed Junoswap contract addresses.

@@ -1,4 +1,4 @@
-import type { PonderPageInfo } from '../client'
+import type { PonderPageInfo } from '../client.js'
 
 /**
  * Shared helpers for the query modules.

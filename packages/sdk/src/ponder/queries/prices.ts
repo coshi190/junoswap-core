@@ -1,11 +1,11 @@
-import type { PonderClient } from '../client'
+import type { PonderClient } from '../client.js'
 import type {
     NativeUsdPrice,
     NativeUsdPriceSnapshot,
     TokenSnapshot,
     V3TokenSnapshot,
-} from '../entities'
-import { sel, type Items, type Page, type Row } from './internal'
+} from '../entities.js'
+import { sel, type Items, type Page, type Row } from './internal.js'
 
 const NATIVE_PRICE_FIELDS = [
     'chainId',

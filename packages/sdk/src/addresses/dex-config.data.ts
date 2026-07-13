@@ -1,7 +1,7 @@
 // DEX protocol deployments per chain. Single source of truth for both the frontend and
 // the indexer — the indexer used to hardcode these same factory addresses in ponder.config.ts.
 
-import type { RawDexRegistry } from './dex-config'
+import type { RawDexRegistry } from './dex-config.js'
 
 export const DEX_REGISTRY_DATA = {
     "junoswap": {
