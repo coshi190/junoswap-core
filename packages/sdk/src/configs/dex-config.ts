@@ -1,6 +1,14 @@
 import type { Address } from 'viem'
-import { CHAIN_IDS } from '../chains.js'
 import { DEX_REGISTRY_DATA } from './dex-config.data.js'
+
+export const CHAIN_IDS = {
+    kubTestnet: 25925,
+    bitkub: 96,
+    jbc: 8899,
+    bsc: 56,
+    base: 8453,
+    worldchain: 480,
+} as const
 
 export type DEXType = 'junoswap' | 'uniswap' | 'pancakeswap' | string
 

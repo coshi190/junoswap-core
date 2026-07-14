@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 describe('dex-config', () => {
     async function getModule() {
-        return await import('../addresses/dex-config')
+        return await import('../configs/dex-config')
     }
 
     describe('getV3Config', () => {

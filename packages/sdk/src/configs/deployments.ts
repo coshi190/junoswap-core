@@ -1,17 +1,6 @@
 import { zeroAddress, type Address } from 'viem'
-import { CHAIN_IDS } from '../chains.js'
+import { CHAIN_IDS } from './dex-config.js'
 
-/**
- * Deployed Junoswap contract addresses.
- *
- * These used to live inside the ABI files in both the frontend and the indexer, which is
- * why neither could generate its ABIs. Keep them here — the ABI modules are generated and
- * will overwrite anything added to them.
- *
- * `startBlock` is the block the indexer syncs from — carried over verbatim from the values
- * that were live in ponder.config.ts. Changing one forces a re-sync, so don't "tidy" them.
- * The frontend ignores this field.
- */
 interface Deployment {
     address: Address
     startBlock: number
@@ -22,7 +11,6 @@ export const BONDING_CURVE_DEPLOYMENTS: Record<number, Deployment> = {
         address: '0x77e5D3fC554e30aceFd5322ca65beE15ee6E39a9',
         startBlock: 29065000,
     },
-    // deployed 2026-06-28
     [CHAIN_IDS.bitkub]: {
         address: '0x65F6EC30A9E70822721585f6Bba15c40c2F8ab4e',
         startBlock: 32995517,

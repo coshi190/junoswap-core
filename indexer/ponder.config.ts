@@ -4,8 +4,6 @@ import {
     AGG_ROUTER_JUNOSWAP_ABI,
     BONDING_CURVE_DEPLOYMENTS,
     BONDING_CURVE_JUNOSWAP_ABI,
-    CHAIN_IDS,
-    DEFAULT_RPC_URLS,
     ERC20_ABI,
     UNISWAP_V2_FACTORY_ABI,
     UNISWAP_V2_PAIR_ABI,
@@ -17,6 +15,7 @@ import {
     getV3Config,
     type DEXType,
 } from '@coshi190/junoswap-sdk'
+import { CHAIN_IDS, DEFAULT_RPC_URLS } from './src/chains.js'
 import externalPools from './external-pools.json'
 
 const seed = (dex: keyof typeof externalPools) =>

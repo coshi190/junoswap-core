@@ -5,8 +5,8 @@ import {
     normalizeReferrer,
     DEFAULT_REFERRER,
     JUNOSWAP_CALLDATA_MARKER,
-} from '../tracking'
-import { parseTrackingTag } from '../tracking'
+    parseTrackingTag,
+} from '../shared/tracking'
 import type { Address } from 'viem'
 
 const REF: Address = '0x1111111111111111111111111111111111111111'
