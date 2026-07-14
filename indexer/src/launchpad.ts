@@ -249,7 +249,7 @@ async function handleGraduation({ event, context }: HandlerArgs) {
 }
 
 async function handleTransfer({ event, context }: HandlerArgs, chainId: number) {
-    const { from, to, amount } = event.args
+    const { from, to, value: amount } = event.args
     const fromLower = from.toLowerCase()
     const toLower = to.toLowerCase()
     const tokenAddrLower = event.log.address.toLowerCase()
