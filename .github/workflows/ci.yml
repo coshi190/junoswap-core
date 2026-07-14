@@ -58,6 +58,8 @@ jobs:
 
             - name: Typecheck
               run: bun run --filter @coshi190/junoswap-sdk typecheck
+            - name: Test
+              run: bun run --filter @coshi190/junoswap-sdk test
             - name: Build
               run: bun run --filter @coshi190/junoswap-sdk build
 

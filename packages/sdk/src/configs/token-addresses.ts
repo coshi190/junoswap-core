@@ -5,6 +5,9 @@ export const WRAPPED_NATIVE_ADDRESSES: Record<number, Address> = {
     [CHAIN_IDS.kubTestnet]: '0x700d3ba307e1256e509ed3e45d6f9dff441d6907',
     [CHAIN_IDS.bitkub]: '0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5',
     [CHAIN_IDS.jbc]: '0xc4b7c87510675167643e3de6eeed4d2c06a9e747',
+    [CHAIN_IDS.worldchain]: '0x4200000000000000000000000000000000000006',
+    [CHAIN_IDS.base]: '0x4200000000000000000000000000000000000006',
+    [CHAIN_IDS.bsc]: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
 }
 
 export const STABLECOIN_ADDRESSES: Record<number, ReadonlySet<string>> = {
