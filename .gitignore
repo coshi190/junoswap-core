@@ -3,15 +3,10 @@ dist
 .env
 .env.local
 *.tsbuildinfo
-
-# foundry
 contracts/out
 contracts/cache
 contracts/broadcast
-
-# ponder
 indexer/.ponder
 indexer/generated
-
 .DS_Store
 .claude
