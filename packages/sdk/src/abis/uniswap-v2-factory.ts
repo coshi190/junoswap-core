@@ -49,7 +49,7 @@ export const UNISWAP_V2_FACTORY_ABI = [
                 internalType: 'address',
             },
             {
-                name: '',
+                name: 'allPairsLength',
                 type: 'uint256',
                 indexed: false,
                 internalType: 'uint256',
