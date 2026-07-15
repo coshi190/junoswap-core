@@ -16,7 +16,7 @@ import {
     type ResolvedPool,
     type V3PoolCandidate,
 } from '../dex/v3-pools.js'
-import { getV3Quote, wrapQuoteResult } from '../dex/v3-quote.js'
+import { getV3Quotes, wrapQuoteResult } from '../dex/v3-quote.js'
 
 const TOKEN_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Address
 const TOKEN_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Address
@@ -234,7 +234,7 @@ describe('dex/v3-quote', () => {
         })
     })
 
-    describe('getV3Quote', () => {
+    describe('getV3Quotes', () => {
         // junoswap on bitkub runs four tiers; two of them have a pool here.
         const phases: ReadResult[][] = [
             [ok(zeroAddress), ok(POOL_1), ok(POOL_2), ok(zeroAddress)],
@@ -245,7 +245,7 @@ describe('dex/v3-quote', () => {
         it('reads in three batches — four tiers, then the surviving pools, then one quote', async () => {
             const { client, batches } = stubClient(phases)
 
-            await getV3Quote(client, {
+            await getV3Quotes(client, {
                 chainId: CHAIN_IDS.bitkub,
                 dexId: 'junoswap',
                 tokenIn: TOKEN_A,
@@ -262,36 +262,37 @@ describe('dex/v3-quote', () => {
         it('quotes against the deepest pool, not the first one found', async () => {
             const { client, batches } = stubClient(phases)
 
-            const result = await getV3Quote(client, {
+            const result = await getV3Quotes(client, {
                 chainId: CHAIN_IDS.bitkub,
                 dexId: 'junoswap',
                 tokenIn: TOKEN_A,
                 tokenOut: TOKEN_B,
                 amountIn: 1000n,
             })
+            const outcome = result.get('junoswap')
 
             // POOL_2 holds 900n against POOL_1's 100n, and sits on the 3000 tier.
             const quoteArgs = batches[2]?.[0]?.args[0] as { fee: number }
             expect(quoteArgs.fee).toBe(3000)
-            expect(result.fee).toBe(3000)
-            expect(result.quote?.amountOut).toBe(1234n)
-            expect(result.dexId).toBe('junoswap')
+            expect(outcome?.fee).toBe(3000)
+            expect(outcome?.quote?.amountOut).toBe(1234n)
+            expect(outcome?.dexId).toBe('junoswap')
         })
 
-        it('returns an empty quote when the pair has no pool on any tier', async () => {
+        it('returns an empty map when the pair has no pool on any tier', async () => {
             const { client } = stubClient([
                 [ok(zeroAddress), ok(zeroAddress), ok(zeroAddress), ok(zeroAddress)],
             ])
 
             expect(
-                await getV3Quote(client, {
+                await getV3Quotes(client, {
                     chainId: CHAIN_IDS.bitkub,
                     dexId: 'junoswap',
                     tokenIn: TOKEN_A,
                     tokenOut: TOKEN_B,
                     amountIn: 1000n,
                 })
-            ).toEqual({ quote: null, fee: null, dexId: null })
+            ).toEqual(new Map())
         })
 
         it('surfaces a reverting quoter as a null quote rather than throwing', async () => {
@@ -301,19 +302,21 @@ describe('dex/v3-quote', () => {
                 [fail('execution reverted')],
             ])
 
-            const result = await getV3Quote(client, {
+            const result = await getV3Quotes(client, {
                 chainId: CHAIN_IDS.bitkub,
                 dexId: 'junoswap',
                 tokenIn: TOKEN_A,
                 tokenOut: TOKEN_B,
                 amountIn: 1000n,
             })
-            expect(result.quote).toBeNull()
+            const outcome = result.get('junoswap')
+            expect(outcome?.quote).toBeNull()
+            expect(outcome?.error).not.toBeNull()
         })
 
         it('produces the same answer on a chain with no multicall3', async () => {
             // bitkub is exactly this chain, so it is the production path — not an edge case.
-            const result = await getV3Quote(fallbackClient(phases), {
+            const result = await getV3Quotes(fallbackClient(phases), {
                 chainId: CHAIN_IDS.bitkub,
                 dexId: 'junoswap',
                 tokenIn: TOKEN_A,
@@ -321,15 +324,16 @@ describe('dex/v3-quote', () => {
                 amountIn: 1000n,
             })
 
-            expect(result).toEqual({
+            expect(result.get('junoswap')).toMatchObject({
+                dexId: 'junoswap',
+                fee: 3000,
+                error: null,
                 quote: {
                     amountOut: 1234n,
                     sqrtPriceX96After: 5n,
                     initializedTicksCrossed: 2,
                     gasEstimate: 77000n,
                 },
-                fee: 3000,
-                dexId: 'junoswap',
             })
         })
     })

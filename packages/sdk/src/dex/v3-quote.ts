@@ -153,24 +153,3 @@ export async function getV3Quotes(
 
     return quoteV3Pools(client, params, pools)
 }
-
-/**
- * The best quote across the requested DEXes. Pass a single `dexId` to pin it to one.
- * Unlike the rest of this module, this collapses to a single answer — use getV3Quotes
- * when you need to compare DEXes.
- */
-export async function getV3Quote(
-    client: ReadClient,
-    params: V3QuoteParams
-): Promise<{ quote: QuoteResult | null; fee: number | null; dexId: DEXType | null }> {
-    const outcomes = await getV3Quotes(client, params)
-
-    let best: V3QuoteOutcome | null = null
-    for (const outcome of outcomes.values()) {
-        if (!outcome.quote) continue
-        if (!best?.quote || outcome.quote.amountOut > best.quote.amountOut) best = outcome
-    }
-
-    if (!best) return { quote: null, fee: null, dexId: null }
-    return { quote: best.quote, fee: best.fee, dexId: best.dexId }
-}
