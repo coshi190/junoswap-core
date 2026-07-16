@@ -269,7 +269,7 @@ describe('dex/v3-quote', () => {
                 tokenOut: TOKEN_B,
                 amountIn: 1000n,
             })
-            const outcome = result.get('junoswap')
+            const outcome = result.direct.get('junoswap')
 
             // POOL_2 holds 900n against POOL_1's 100n, and sits on the 3000 tier.
             const quoteArgs = batches[2]?.[0]?.args[0] as { fee: number }
@@ -284,15 +284,15 @@ describe('dex/v3-quote', () => {
                 [ok(zeroAddress), ok(zeroAddress), ok(zeroAddress), ok(zeroAddress)],
             ])
 
-            expect(
-                await getV3Quotes(client, {
-                    chainId: CHAIN_IDS.bitkub,
-                    dexId: 'junoswap',
-                    tokenIn: TOKEN_A,
-                    tokenOut: TOKEN_B,
-                    amountIn: 1000n,
-                })
-            ).toEqual(new Map())
+            const result = await getV3Quotes(client, {
+                chainId: CHAIN_IDS.bitkub,
+                dexId: 'junoswap',
+                tokenIn: TOKEN_A,
+                tokenOut: TOKEN_B,
+                amountIn: 1000n,
+            })
+            expect(result.direct).toEqual(new Map())
+            expect(result.routes).toEqual([])
         })
 
         it('surfaces a reverting quoter as a null quote rather than throwing', async () => {
@@ -309,7 +309,7 @@ describe('dex/v3-quote', () => {
                 tokenOut: TOKEN_B,
                 amountIn: 1000n,
             })
-            const outcome = result.get('junoswap')
+            const outcome = result.direct.get('junoswap')
             expect(outcome?.quote).toBeNull()
             expect(outcome?.error).not.toBeNull()
         })
@@ -324,7 +324,7 @@ describe('dex/v3-quote', () => {
                 amountIn: 1000n,
             })
 
-            expect(result.get('junoswap')).toMatchObject({
+            expect(result.direct.get('junoswap')).toMatchObject({
                 dexId: 'junoswap',
                 fee: 3000,
                 error: null,

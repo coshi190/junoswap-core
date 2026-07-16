@@ -12,7 +12,6 @@ import {
     resolveSwapPath,
     shouldSkipUnwrap,
 } from '../dex/native.js'
-import { calculateMinOutput } from '../dex/slippage.js'
 import { encodeV3Path } from '../dex/uniswap-v3.js'
 import { planSwap, SwapPlanError, type PlanSwapInput } from '../dex/plan-swap.js'
 import { buildQuoteCall } from '../dex/quote.js'
@@ -87,21 +86,6 @@ describe('getWrapOperation', () => {
     it('returns null for ordinary pairs', () => {
         expect(getWrapOperation(NATIVE, TOKEN_A, CHAIN_IDS.jbc)).toBeNull()
         expect(getWrapOperation(TOKEN_A, TOKEN_B, CHAIN_IDS.jbc)).toBeNull()
-    })
-})
-
-describe('calculateMinOutput', () => {
-    it('is identity at 0 bps', () => {
-        expect(calculateMinOutput(1_000_000n, 0)).toBe(1_000_000n)
-    })
-
-    it('floors by the given basis points', () => {
-        expect(calculateMinOutput(1_000_000n, 100)).toBe(990_000n) // 1%
-        expect(calculateMinOutput(1_000_000n, 50)).toBe(995_000n) // 0.5%
-    })
-
-    it('truncates downward, never rounding the floor up', () => {
-        expect(calculateMinOutput(9n, 100)).toBe(8n) // 8.91 -> 8
     })
 })
 

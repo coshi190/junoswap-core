@@ -11,6 +11,7 @@ import {
     resolvePoolAddresses,
     type DiscoveredV3Pool,
 } from './v3-pools.js'
+import { getV3Routes, type V3RouteQuote } from './v3-routes.js'
 
 /** The quoter's answer, plus the synthesized equivalent for a wrap/unwrap. */
 export interface QuoteResult {
@@ -49,6 +50,20 @@ export interface V3QuoteParams {
     amountIn: bigint
     /** Omit to quote every V3 DEX on the chain. */
     dexId?: DEXType | DEXType[]
+    /** Intermediary tokens to route multi-hop through. Omit/empty for direct quotes only. */
+    connectors?: Address[]
+    /** Max path length for multi-hop enumeration. Defaults to MAX_HOPS. */
+    maxHops?: number
+    /** Cap on multi-hop quote calls. Defaults to MAX_ROUTE_QUOTES. */
+    maxRouteQuotes?: number
+    /** Set false to skip single-hop discovery for multi-hop-only callers. Defaults true. */
+    includeDirect?: boolean
+}
+
+/** The unified V3 answer: best single-hop pool per DEX, plus every viable multi-hop route. */
+export interface V3QuoteResult {
+    direct: Map<DEXType, V3QuoteOutcome>
+    routes: V3RouteQuote[]
 }
 
 export interface V3QuoteOutcome {
@@ -143,8 +158,7 @@ export async function quoteV3Pools(
     return outcomes
 }
 
-/** Discovery and quoting for every requested DEX, in three batched reads total. */
-export async function getV3Quotes(
+async function getDirectQuotes(
     client: ReadClient,
     params: V3QuoteParams
 ): Promise<Map<DEXType, V3QuoteOutcome>> {
@@ -152,4 +166,26 @@ export async function getV3Quotes(
     if (pools.size === 0) return new Map()
 
     return quoteV3Pools(client, params, pools)
+}
+
+/**
+ * Unified V3 quoting. Single-hop discovery + quoting per DEX (three batched reads), and — when
+ * `connectors` are given — multi-hop route discovery + quoting, run concurrently.
+ */
+export async function getV3Quotes(
+    client: ReadClient,
+    params: V3QuoteParams
+): Promise<V3QuoteResult> {
+    const { connectors, includeDirect = true } = params
+
+    const [direct, routes] = await Promise.all([
+        includeDirect
+            ? getDirectQuotes(client, params)
+            : Promise.resolve(new Map<DEXType, V3QuoteOutcome>()),
+        connectors && connectors.length > 0
+            ? getV3Routes(client, { ...params, connectors })
+            : Promise.resolve<V3RouteQuote[]>([]),
+    ])
+
+    return { direct, routes }
 }
