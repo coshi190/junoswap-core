@@ -171,6 +171,23 @@ export const v3Pool = onchainTable('v3_pool', (t) => ({
     protocol: t.text().notNull().default(''),
 }))
 
+export const v3Position = onchainTable('v3_position', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${tokenId}`
+    chainId: t.integer().notNull(),
+    tokenId: t.text().notNull(),
+    owner: t.text().notNull(), // lowercased; zero address once burned/transferred out
+    token0: t.text().notNull(),
+    token1: t.text().notNull(),
+    fee: t.integer().notNull(),
+    tickLower: t.integer().notNull(),
+    tickUpper: t.integer().notNull(),
+    liquidity: t.text().notNull().default('0'), // maintained via Increase/Decrease deltas
+    tokensOwed0: t.text().notNull().default('0'), // best-effort; UI uses a live collect() sim
+    tokensOwed1: t.text().notNull().default('0'),
+    createdAtBlock: t.integer().notNull(),
+    updatedAt: t.integer().notNull(),
+}))
+
 export const v3PoolDayVolume = onchainTable('v3_pool_day_volume', (t) => ({
     id: t.text().primaryKey(),
     chainId: t.integer().notNull(),

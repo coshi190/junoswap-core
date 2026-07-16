@@ -175,6 +175,23 @@ export interface V3PoolDayVolume {
     updatedAt: number
 }
 
+export interface V3Position {
+    id: string
+    chainId: number
+    tokenId: string
+    owner: string
+    token0: string
+    token1: string
+    fee: number
+    tickLower: number
+    tickUpper: number
+    liquidity: string
+    tokensOwed0: string
+    tokensOwed1: string
+    createdAtBlock: number
+    updatedAt: number
+}
+
 export interface V3SwapEvent {
     id: string
     chainId: number
@@ -234,6 +251,7 @@ export interface PonderRootFields {
     v2SwapEvents: 'V2SwapEvent'
     v3Pools: 'V3Pool'
     v3PoolDayVolumes: 'V3PoolDayVolume'
+    v3Positions: 'V3Position'
     v3SwapEvents: 'V3SwapEvent'
     v3Tokens: 'V3Token'
     v3TokenSnapshots: 'V3TokenSnapshot'

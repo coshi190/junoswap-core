@@ -5,6 +5,7 @@ import {
     BONDING_CURVE_DEPLOYMENTS,
     BONDING_CURVE_JUNOSWAP_ABI,
     ERC20_ABI,
+    NONFUNGIBLE_POSITION_MANAGER_ABI,
     UNISWAP_V2_FACTORY_ABI,
     UNISWAP_V2_PAIR_ABI,
     UNISWAP_V3_FACTORY_ABI,
@@ -38,6 +39,12 @@ function v3Factory(chainId: number, dexId: DEXType): `0x${string}` {
     const factoryAddress = getV3Config(chainId, dexId)?.factory
     if (!factoryAddress) throw new Error(`No enabled V3 config for ${dexId} on chain ${chainId}`)
     return factoryAddress
+}
+
+function v3PositionManager(chainId: number, dexId: DEXType): `0x${string}` {
+    const address = getV3Config(chainId, dexId)?.positionManager
+    if (!address) throw new Error(`No positionManager for ${dexId} on chain ${chainId}`)
+    return address
 }
 
 // The Extract<> return type is load-bearing: ponder's factory() needs the event's literal
@@ -180,6 +187,24 @@ export default createConfig({
                 event: V3_POOL_CREATED_EVENT,
                 parameter: 'pool',
             }),
+            startBlock: V3_JBC_START,
+        },
+        NftPositionManager: {
+            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+            chain: 'kubTestnet',
+            address: v3PositionManager(CHAIN_IDS.kubTestnet, 'junoswap'),
+            startBlock: V3_TESTNET_START,
+        },
+        NftPositionManagerBitkub: {
+            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+            chain: 'bitkub',
+            address: v3PositionManager(CHAIN_IDS.bitkub, 'junoswap'),
+            startBlock: V3_BITKUB_START,
+        },
+        NftPositionManagerJbc: {
+            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+            chain: 'jbc',
+            address: v3PositionManager(CHAIN_IDS.jbc, 'junoswap'),
             startBlock: V3_JBC_START,
         },
         JibswapFactory: {
