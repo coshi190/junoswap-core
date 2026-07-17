@@ -6,6 +6,7 @@ import {
     DEFAULT_REFERRER,
     JUNOSWAP_CALLDATA_MARKER,
     parseTrackingTag,
+    resolveBinding,
 } from '../shared/tracking'
 import type { Address } from 'viem'
 
@@ -52,5 +53,25 @@ describe('appendTrackingTag <-> parseTrackingTag', () => {
         expect(parseTrackingTag('0x')).toBeNull()
         // 24-byte tail that is the right length but wrong marker
         expect(parseTrackingTag('0x' + 'cd'.repeat(24))).toBeNull()
+    })
+})
+
+describe('resolveBinding', () => {
+    const A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+    const B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
+
+    it('binds a referee to a distinct referrer, lowercased', () => {
+        expect(resolveBinding(A, B)).toEqual({
+            referee: A.toLowerCase(),
+            referrer: B.toLowerCase(),
+        })
+    })
+
+    it('rejects a missing referrer', () => {
+        expect(resolveBinding(A, null)).toBeNull()
+    })
+
+    it('rejects self-referral regardless of case', () => {
+        expect(resolveBinding(A, A.toLowerCase())).toBeNull()
     })
 })
