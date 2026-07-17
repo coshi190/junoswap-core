@@ -5,9 +5,11 @@ import { readERC20Metadata } from './erc20-read.js'
 import {
     parseTrackingTag,
     resolveBinding,
+    parseV3Swap,
     WRAPPED_NATIVE_ADDRESSES,
     STABLECOIN_ADDRESSES,
 } from '@coshi190/junoswap-sdk'
+import { recordUserSwap } from './user-pnl.js'
 
 const Q96 = 2n ** 96n
 const WRAPPED_NATIVE = '0x700d3ba307e1256e509ed3e45d6f9dff441d6907'
@@ -288,6 +290,41 @@ export async function recordV3SwapEvent(
                 chainId,
             })
             .onConflictDoNothing()
+    }
+
+    // Resolve the native leg and fold the swap into the trader's PnL. Non-native pools (parse
+    // returns null) are still recorded above but contribute no native-denominated PnL.
+    const parsed = parseV3Swap(
+        {
+            tokenAddr,
+            txFrom: event.transaction.from.toLowerCase(),
+            amount0: amount0.toString(),
+            amount1: amount1.toString(),
+            token0Addr: token0,
+            token1Addr: token1,
+            timestamp,
+            protocol,
+        },
+        wn
+    )
+    if (parsed) {
+        const nativePriceRecord = await context.db.find(schema.nativeUsdPrice, { chainId })
+        const nativeUsd = nativePriceRecord ? parseFloat(nativePriceRecord.price) : 0
+        const tokenRec = await context.db.find(schema.v3Token, {
+            id: `${chainId}-${parsed.tokenAddr}`,
+        })
+        await recordUserSwap(
+            context,
+            chainId,
+            parsed.tokenAddr,
+            parsed.sender,
+            parsed.isBuy,
+            parsed.amountIn,
+            parsed.amountOut,
+            tokenRec?.decimals ?? 18,
+            nativeUsd,
+            timestamp
+        )
     }
 }
 

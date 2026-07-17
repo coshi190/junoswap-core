@@ -6,6 +6,7 @@ import { readERC20Metadata } from './erc20-read.js'
 import { creatorFeeShareForSwap, VIRTUAL_AMOUNT } from './creator-fee.js'
 import { BONDING_CURVE_ADDRESS_BY_CHAIN, isLaunchpadChain } from '@coshi190/junoswap-sdk'
 import { CHAIN_IDS } from './chains.js'
+import { recordUserSwap } from './user-pnl.js'
 
 const MAINNET_ENABLED = isLaunchpadChain(CHAIN_IDS.bitkub)
 
@@ -123,6 +124,20 @@ async function handleSwap({ event, context }: HandlerArgs, chainId: number) {
     const nativePriceRecord = await context.db.find(schema.nativeUsdPrice, { chainId })
     const nativeUsd = nativePriceRecord ? parseFloat(nativePriceRecord.price) : 0
     const priceUsd = nativeUsd > 0 && price > 0 ? price * nativeUsd : 0
+
+    // Launch tokens are always 18-decimal; buy pays native (amountIn), sell receives native (amountOut).
+    await recordUserSwap(
+        context,
+        chainId,
+        tokenAddrLower,
+        senderLower,
+        isBuy,
+        amountIn.toString(),
+        amountOut.toString(),
+        18,
+        nativeUsd,
+        timestamp
+    )
 
     const existingSnapshot = await context.db.find(schema.tokenSnapshot, {
         tokenAddr: tokenAddrLower,

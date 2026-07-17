@@ -117,6 +117,29 @@ export interface TransferEvent {
     transactionHash: string
 }
 
+export interface UserStat {
+    id: string
+    chainId: number
+    user: string
+    volumeNative: number
+    tradeCount: number
+    buyCount: number
+    sellCount: number
+    updatedAt: number
+}
+
+export interface UserTokenPnl {
+    id: string
+    chainId: number
+    tokenAddr: string
+    user: string
+    position: number
+    costPoolUsd: number
+    realizedUsd: number
+    totalInvestedUsd: number
+    updatedAt: number
+}
+
 export interface V2Pool {
     id: string
     chainId: number
@@ -247,6 +270,8 @@ export interface PonderRootFields {
     tokenHolders: 'TokenHolder'
     tokenSnapshots: 'TokenSnapshot'
     transferEvents: 'TransferEvent'
+    userStats: 'UserStat'
+    userTokenPnls: 'UserTokenPnl'
     v2Pools: 'V2Pool'
     v2SwapEvents: 'V2SwapEvent'
     v3Pools: 'V3Pool'

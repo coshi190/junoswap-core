@@ -231,3 +231,33 @@ export const referralBinding = onchainTable('referral_binding', (t) => ({
     boundAtTimestamp: t.integer().notNull(),
     chainId: t.integer().notNull(),
 }))
+
+// Average-cost PnL fold per (chain, token, user), accumulated in the swap handlers. `position` is in
+// human token units (formatUnits) so it lines up with a live balance; the USD fields are doubles.
+// Real (not text) because these are genuine floats — the finalize step in the API routes reads them
+// straight into `PnlFold`. See packages/sdk/src/leaderboard/pnl.ts for the accounting model.
+export const userTokenPnl = onchainTable('user_token_pnl', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${tokenAddr}-${user}`, all lowercased
+    chainId: t.integer().notNull(),
+    tokenAddr: t.text().notNull(),
+    user: t.text().notNull(),
+    position: t.real().notNull().default(0),
+    costPoolUsd: t.real().notNull().default(0),
+    realizedUsd: t.real().notNull().default(0),
+    totalInvestedUsd: t.real().notNull().default(0),
+    updatedAt: t.integer().notNull(),
+}))
+
+// Per (chain, user) leaderboard counters folded alongside the PnL. `volumeNative` is the summed
+// native leg of every swap; PnL for the leaderboard is derived by finalizing that user's
+// userTokenPnl rows at read time.
+export const userStat = onchainTable('user_stat', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${user}`, lowercased
+    chainId: t.integer().notNull(),
+    user: t.text().notNull(),
+    volumeNative: t.real().notNull().default(0),
+    tradeCount: t.integer().notNull().default(0),
+    buyCount: t.integer().notNull().default(0),
+    sellCount: t.integer().notNull().default(0),
+    updatedAt: t.integer().notNull(),
+}))

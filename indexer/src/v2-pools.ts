@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ponder } from 'ponder:registry'
 import schema from 'ponder:schema'
-import { parseTrackingTag, resolveBinding } from '@coshi190/junoswap-sdk'
+import {
+    parseTrackingTag,
+    resolveBinding,
+    parseV2Swap,
+    WRAPPED_NATIVE_ADDRESSES,
+} from '@coshi190/junoswap-sdk'
 import { upsertToken } from './v3-pools.js'
 import { getSeedV2Pool, getSeedV2Dex } from './seed.js'
+import { recordUserSwap } from './user-pnl.js'
 
 async function getOrSeedV2Pool(context: any, chainId: number, poolAddress: string, event: any) {
     const id = `${chainId}-${poolAddress}`
@@ -112,6 +118,45 @@ async function recordV2SwapEvent(context: any, chainId: number, event: any, dex:
                 chainId,
             })
             .onConflictDoNothing()
+    }
+
+    // Resolve the native leg and fold the swap into the trader's PnL. Non-native pairs (parse
+    // returns null) are still recorded above but contribute no native-denominated PnL.
+    const wn = WRAPPED_NATIVE_ADDRESSES[chainId]
+    const parsed = wn
+        ? parseV2Swap(
+              {
+                  txFrom: event.transaction.from.toLowerCase(),
+                  token0Addr: token0,
+                  token1Addr: token1,
+                  amount0In: amount0In.toString(),
+                  amount1In: amount1In.toString(),
+                  amount0Out: amount0Out.toString(),
+                  amount1Out: amount1Out.toString(),
+                  timestamp,
+                  protocol,
+              },
+              wn
+          )
+        : null
+    if (parsed) {
+        const nativePriceRecord = await context.db.find(schema.nativeUsdPrice, { chainId })
+        const nativeUsd = nativePriceRecord ? parseFloat(nativePriceRecord.price) : 0
+        const tokenRec = await context.db.find(schema.v3Token, {
+            id: `${chainId}-${parsed.tokenAddr}`,
+        })
+        await recordUserSwap(
+            context,
+            chainId,
+            parsed.tokenAddr,
+            parsed.sender,
+            parsed.isBuy,
+            parsed.amountIn,
+            parsed.amountOut,
+            tokenRec?.decimals ?? 18,
+            nativeUsd,
+            timestamp
+        )
     }
 }
 
