@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import schema from 'ponder:schema'
 import { formatEther } from 'viem'
-import { applyFoldEvent, EMPTY_FOLD, type PnlFold } from '@coshi190/junoswap-sdk'
+import {
+    applyFoldEvent,
+    sanitizeUsdPrice,
+    MAX_NATIVE_USD_PRICE,
+    EMPTY_FOLD,
+    type PnlFold,
+} from '@coshi190/junoswap-sdk'
 
 /**
  * Fold one native-denominated swap into a user's cumulative PnL (`userTokenPnl`) and leaderboard
@@ -25,6 +31,9 @@ export async function recordUserSwap(
     const t = tokenAddr.toLowerCase()
     const u = user.toLowerCase()
 
+    // A garbage native price (edge pool) must never enter a cost pool; treat it as 0 (no USD basis).
+    const safeNativeUsd = sanitizeUsdPrice(nativeUsd, MAX_NATIVE_USD_PRICE) ?? 0
+
     // --- average-cost PnL fold ---
     const pnlId = `${chainId}-${t}-${u}`
     const existing = await context.db.find(schema.userTokenPnl, { id: pnlId })
@@ -38,7 +47,7 @@ export async function recordUserSwap(
         : EMPTY_FOLD
     const next = applyFoldEvent(
         prev,
-        { isBuy, amountIn: amountInWei, amountOut: amountOutWei, nativeUsd },
+        { isBuy, amountIn: amountInWei, amountOut: amountOutWei, nativeUsd: safeNativeUsd },
         decimals
     )
     if (existing) {

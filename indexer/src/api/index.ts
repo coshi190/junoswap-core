@@ -11,6 +11,8 @@ import {
     parseV3Swap,
     makePriceAt,
     sanitizePricePoints,
+    sanitizeUsdPrice,
+    MAX_TOKEN_USD_PRICE,
     WRAPPED_NATIVE_ADDRESSES,
     type PnlFold,
     type TokenPnl,
@@ -31,11 +33,14 @@ app.use('/graphql', graphql({ db, schema }))
 // latest indexed token price, so unrealized PnL tracks the market rather than freezing at the
 // user's last trade. See packages/sdk/src/leaderboard/pnl.ts for the accounting.
 
-/** A number string of '0'/''/undefined means "no price"; anything positive is a real USD price. */
+/**
+ * A number string of '0'/''/undefined means "no price"; anything positive and in-band is a real USD
+ * price. The upper bound rejects any garbage price already stored (from before the source guards) so
+ * unrealized PnL can't blow up at read time even ahead of a clean re-sync.
+ */
 function toPrice(raw: string | null | undefined): number | null {
     if (!raw) return null
-    const n = parseFloat(raw)
-    return Number.isFinite(n) && n > 0 ? n : null
+    return sanitizeUsdPrice(parseFloat(raw), MAX_TOKEN_USD_PRICE)
 }
 
 /** Latest USD price per token, preferring the V3 DEX snapshot over the bonding-curve snapshot. */

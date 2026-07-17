@@ -10,6 +10,20 @@ export interface NativePricePoint {
     price: number
 }
 
+/**
+ * Upper bounds for a "plausible" USD price. A low-liquidity V3 pool swapping near a tick boundary can
+ * make `computePriceFromSqrtPriceX96` return ~2^128 (≈3.4e38); left unchecked that poisons cost basis
+ * and unrealized PnL into impossible figures. No L1 native token is anywhere near 1e6, and no real
+ * token's unit price is near 1e12, so these bands reject the garbage without clipping real values.
+ */
+export const MAX_NATIVE_USD_PRICE = 1e6
+export const MAX_TOKEN_USD_PRICE = 1e12
+
+/** Return `value` if it's a finite, positive, in-band price; otherwise null ("no usable price"). */
+export function sanitizeUsdPrice(value: number, maxPrice: number): number | null {
+    return Number.isFinite(value) && value > 0 && value <= maxPrice ? value : null
+}
+
 /** Keep finite positive prices within 100x of the median, discarding obvious bad snapshots. */
 export function sanitizePricePoints<T extends { price: number }>(points: readonly T[]): T[] {
     const finite = points.filter((p) => Number.isFinite(p.price) && p.price > 0)

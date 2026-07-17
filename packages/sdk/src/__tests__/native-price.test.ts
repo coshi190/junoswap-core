@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { makePriceAt, sanitizePricePoints } from '../leaderboard/native-price.js'
+import {
+    makePriceAt,
+    sanitizePricePoints,
+    sanitizeUsdPrice,
+    MAX_NATIVE_USD_PRICE,
+    MAX_TOKEN_USD_PRICE,
+} from '../leaderboard/native-price.js'
 
 describe('leaderboard/native-price', () => {
     it('makePriceAt returns the last price at or before a timestamp', () => {
@@ -34,5 +40,17 @@ describe('leaderboard/native-price', () => {
             { timestamp: 7, price: 2 },
         ]
         expect(sanitizePricePoints(points).map((p) => p.timestamp)).toEqual([1, 3, 6, 7])
+    })
+
+    it('sanitizeUsdPrice accepts in-band prices and rejects garbage', () => {
+        expect(sanitizeUsdPrice(2.5, MAX_NATIVE_USD_PRICE)).toBe(2.5)
+        expect(sanitizeUsdPrice(69000, MAX_TOKEN_USD_PRICE)).toBe(69000)
+        // 2^128 garbage from an edge pool
+        expect(sanitizeUsdPrice(3.402823669e38, MAX_NATIVE_USD_PRICE)).toBeNull()
+        expect(sanitizeUsdPrice(3.402823669e38, MAX_TOKEN_USD_PRICE)).toBeNull()
+        expect(sanitizeUsdPrice(Infinity, MAX_TOKEN_USD_PRICE)).toBeNull()
+        expect(sanitizeUsdPrice(NaN, MAX_TOKEN_USD_PRICE)).toBeNull()
+        expect(sanitizeUsdPrice(0, MAX_TOKEN_USD_PRICE)).toBeNull()
+        expect(sanitizeUsdPrice(-1, MAX_TOKEN_USD_PRICE)).toBeNull()
     })
 })

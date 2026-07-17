@@ -6,6 +6,9 @@ import {
     parseTrackingTag,
     resolveBinding,
     parseV3Swap,
+    sanitizeUsdPrice,
+    MAX_NATIVE_USD_PRICE,
+    MAX_TOKEN_USD_PRICE,
     WRAPPED_NATIVE_ADDRESSES,
     STABLECOIN_ADDRESSES,
 } from '@coshi190/junoswap-sdk'
@@ -141,6 +144,10 @@ async function updateNativeUsdPrice(
     const stableDecimals = stableToken?.decimals ?? 18
     const price = computePriceFromSqrtPriceX96(sqrtPriceX96, nativeIsToken0, 18, stableDecimals)
 
+    // A low-liquidity / edge pool near a tick boundary can yield a garbage price (~2^128); reject it
+    // and keep the last good native price rather than poisoning every USD value derived at this block.
+    if (sanitizeUsdPrice(price, MAX_NATIVE_USD_PRICE) === null) return
+
     await context.db
         .insert(schema.nativeUsdPrice)
         .values({
@@ -198,7 +205,9 @@ async function updateV3TokenSnapshot(
 
     const nativePrice = await context.db.find(schema.nativeUsdPrice, { chainId })
     const nativeUsd = nativePrice ? parseFloat(nativePrice.price) : 0
-    const priceUsd = nativeUsd > 0 ? priceNative * nativeUsd : 0
+    const rawPriceUsd = nativeUsd > 0 ? priceNative * nativeUsd : 0
+    // Store 0 ("no price") rather than a garbage USD price from an edge pool.
+    const priceUsd = sanitizeUsdPrice(rawPriceUsd, MAX_TOKEN_USD_PRICE) ?? 0
 
     const id = `${chainId}-${tokenAddr}`
     await context.db
