@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ponder } from 'ponder:registry'
 import schema from 'ponder:schema'
+import { formatEther } from 'viem'
 import { readERC20Metadata } from './erc20-read.js'
+import { foldTokenCandle } from './candles.js'
 import {
     parseTrackingTag,
     resolveBinding,
@@ -109,6 +111,104 @@ async function upsertPoolDayVolume(
             updatedAt: timestamp,
         })
     }
+}
+
+// Fold a signed reserve delta into a pool's running state and today's daily snapshot. Only pools
+// observed from creation (reserves start at 0) are tracked this way — see the Mint/Collect/Swap
+// wiring below. Reserves are clamped at 0 as a guard against any unmodelled inflow.
+export async function applyReserveDelta(
+    context: any,
+    chainId: number,
+    poolAddress: string,
+    timestamp: number,
+    delta0: bigint,
+    delta1: bigint,
+    sqrtPriceX96?: bigint,
+    liquidity?: bigint,
+    tick?: number | bigint
+) {
+    const stateId = `${chainId}-${poolAddress}`
+    const prev = await context.db.find(schema.v3PoolState, { id: stateId })
+
+    let reserve0 = (prev ? BigInt(prev.reserve0) : 0n) + delta0
+    let reserve1 = (prev ? BigInt(prev.reserve1) : 0n) + delta1
+    if (reserve0 < 0n) reserve0 = 0n
+    if (reserve1 < 0n) reserve1 = 0n
+
+    const sp = sqrtPriceX96 !== undefined ? sqrtPriceX96.toString() : (prev?.sqrtPriceX96 ?? '0')
+    const liq = liquidity !== undefined ? liquidity.toString() : (prev?.liquidity ?? '0')
+    const tk = tick !== undefined ? Number(tick) : (prev?.tick ?? null)
+
+    if (!prev) {
+        await context.db
+            .insert(schema.v3PoolState)
+            .values({
+                id: stateId,
+                chainId,
+                poolAddress,
+                reserve0: reserve0.toString(),
+                reserve1: reserve1.toString(),
+                sqrtPriceX96: sp,
+                tick: tk,
+                liquidity: liq,
+                updatedAt: timestamp,
+            })
+            .onConflictDoNothing()
+    } else {
+        await context.db.update(schema.v3PoolState, { id: stateId }).set({
+            reserve0: reserve0.toString(),
+            reserve1: reserve1.toString(),
+            sqrtPriceX96: sp,
+            tick: tk,
+            liquidity: liq,
+            updatedAt: timestamp,
+        })
+    }
+
+    // Daily snapshot: a level (last-write-wins for the day), not a sum.
+    const dayTimestamp = getDayTimestamp(timestamp)
+    const dayId = `${chainId}-${poolAddress}-${dayTimestamp}`
+    const dayVals = {
+        reserve0: reserve0.toString(),
+        reserve1: reserve1.toString(),
+        sqrtPriceX96: sp,
+        updatedAt: timestamp,
+    }
+    const existingDay = await context.db.find(schema.v3PoolTvlDay, { id: dayId })
+    if (!existingDay) {
+        await context.db
+            .insert(schema.v3PoolTvlDay)
+            .values({ id: dayId, chainId, poolAddress, dayTimestamp, ...dayVals })
+            .onConflictDoNothing()
+    } else {
+        await context.db.update(schema.v3PoolTvlDay, { id: dayId }).set(dayVals)
+    }
+}
+
+// Shared Mint/Collect reserve handlers for junoswap V3 pools (registered with the full pool ABI).
+// Mint deposits tokens (delta +); Collect withdraws (delta -). Burn moves nothing (marks owed).
+async function handleV3Mint(context: any, chainId: number, event: any) {
+    const { amount0, amount1 } = event.args
+    await applyReserveDelta(
+        context,
+        chainId,
+        event.log.address.toLowerCase(),
+        Number(event.block.timestamp),
+        amount0,
+        amount1
+    )
+}
+
+async function handleV3Collect(context: any, chainId: number, event: any) {
+    const { amount0, amount1 } = event.args as { amount0: bigint; amount1: bigint }
+    await applyReserveDelta(
+        context,
+        chainId,
+        event.log.address.toLowerCase(),
+        Number(event.block.timestamp),
+        -amount0,
+        -amount1
+    )
 }
 
 async function updateNativeUsdPrice(
@@ -334,6 +434,19 @@ export async function recordV3SwapEvent(
             nativeUsd,
             timestamp
         )
+
+        // Fold the swap into the token's native-price candles (source 'v3'). Price and volume are in
+        // native terms, matching the client's tokenNativeCandles: sqrtPrice → native price scaled by
+        // the token's decimals, and the native leg's absolute amount as volume.
+        const priceNative = computePriceFromSqrtPriceX96(
+            sqrtPriceX96,
+            tokenIsToken0,
+            tokenRec?.decimals ?? 18,
+            18
+        )
+        const nativeAmount = tokenIsToken0 ? amount1 : amount0
+        const volumeNative = Number(formatEther(nativeAmount < 0n ? -nativeAmount : nativeAmount))
+        await foldTokenCandle(context, chainId, parsed.tokenAddr, 'v3', timestamp, priceNative, volumeNative)
     }
 }
 
@@ -367,7 +480,7 @@ ponder.on('V3Factory:PoolCreated', async ({ event, context }) => {
 })
 
 ponder.on('V3Pool:Swap', async ({ event, context }) => {
-    const { amount0, amount1, sqrtPriceX96 } = event.args
+    const { amount0, amount1, sqrtPriceX96, liquidity, tick } = event.args
     const poolAddress = event.log.address.toLowerCase()
     const timestamp = Number(event.block.timestamp)
     const absAmount0 = amount0 < 0n ? -amount0 : amount0
@@ -377,6 +490,18 @@ ponder.on('V3Pool:Swap', async ({ event, context }) => {
 
     const poolRecord = await context.db.find(schema.v3Pool, { id: `25925-${poolAddress}` })
     if (!poolRecord) return
+
+    await applyReserveDelta(
+        context,
+        25925,
+        poolAddress,
+        timestamp,
+        amount0,
+        amount1,
+        sqrtPriceX96,
+        liquidity,
+        tick
+    )
 
     await updateNativeUsdPrice(
         context,
@@ -508,7 +633,7 @@ ponder.on('V3FactoryBitkub:PoolCreated', async ({ event, context }) => {
 })
 
 ponder.on('V3PoolBitkub:Swap', async ({ event, context }) => {
-    const { sqrtPriceX96 } = event.args
+    const { sqrtPriceX96, liquidity, tick } = event.args
     const { amount0, amount1 } = event.args
     const poolAddress = event.log.address.toLowerCase()
     const timestamp = Number(event.block.timestamp)
@@ -519,6 +644,18 @@ ponder.on('V3PoolBitkub:Swap', async ({ event, context }) => {
 
     const poolRecord = await context.db.find(schema.v3Pool, { id: `96-${poolAddress}` })
     if (!poolRecord) return
+
+    await applyReserveDelta(
+        context,
+        96,
+        poolAddress,
+        timestamp,
+        amount0,
+        amount1,
+        sqrtPriceX96,
+        liquidity,
+        tick
+    )
 
     await updateNativeUsdPrice(
         context,
@@ -564,7 +701,7 @@ ponder.on('V3FactoryJbc:PoolCreated', async ({ event, context }) => {
 })
 
 ponder.on('V3PoolJbc:Swap', async ({ event, context }) => {
-    const { sqrtPriceX96 } = event.args
+    const { sqrtPriceX96, liquidity, tick } = event.args
     const { amount0, amount1 } = event.args
     const poolAddress = event.log.address.toLowerCase()
     const timestamp = Number(event.block.timestamp)
@@ -575,6 +712,18 @@ ponder.on('V3PoolJbc:Swap', async ({ event, context }) => {
 
     const poolRecord = await context.db.find(schema.v3Pool, { id: `8899-${poolAddress}` })
     if (!poolRecord) return
+
+    await applyReserveDelta(
+        context,
+        8899,
+        poolAddress,
+        timestamp,
+        amount0,
+        amount1,
+        sqrtPriceX96,
+        liquidity,
+        tick
+    )
 
     await updateNativeUsdPrice(
         context,
@@ -589,3 +738,12 @@ ponder.on('V3PoolJbc:Swap', async ({ event, context }) => {
     await updateV3TokenSnapshot(context, 8899, poolAddress, poolRecord, sqrtPriceX96, timestamp)
     await recordV3SwapEvent(context, 8899, event, poolRecord, poolAddress, timestamp)
 })
+
+// Liquidity add/remove reserve tracking for junoswap V3 pools (Swap deltas are folded in the
+// swap handlers above). Together these keep v3PoolState reserves exact for pools born after start.
+ponder.on('V3Pool:Mint', ({ event, context }) => handleV3Mint(context, 25925, event))
+ponder.on('V3Pool:Collect', ({ event, context }) => handleV3Collect(context, 25925, event))
+ponder.on('V3PoolBitkub:Mint', ({ event, context }) => handleV3Mint(context, 96, event))
+ponder.on('V3PoolBitkub:Collect', ({ event, context }) => handleV3Collect(context, 96, event))
+ponder.on('V3PoolJbc:Mint', ({ event, context }) => handleV3Mint(context, 8899, event))
+ponder.on('V3PoolJbc:Collect', ({ event, context }) => handleV3Collect(context, 8899, event))

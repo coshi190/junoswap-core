@@ -1,5 +1,5 @@
 import type { PonderClient } from '../client.js'
-import type { SwapEvent, V3SwapEvent } from '../entities.js'
+import type { SwapEvent, TokenCandle, V3SwapEvent } from '../entities.js'
 import { sel, type Items, type Page, type Row } from './internal.js'
 
 /** Bonding-curve price series: price is derived from the reserves on each swap. */
@@ -44,6 +44,17 @@ const POOL_POINT_FIELDS = [
     'timestamp',
     'sqrtPriceX96',
 ] as const satisfies readonly (keyof V3SwapEvent)[]
+
+const CANDLE_FIELDS = [
+    'bucketTs',
+    'open',
+    'high',
+    'low',
+    'close',
+    'volumeNative',
+] as const satisfies readonly (keyof TokenCandle)[]
+
+export type TokenCandleRow = Row<TokenCandle, typeof CANDLE_FIELDS>
 
 export type BondingCurveHistoryPoint = Row<SwapEvent, typeof BC_HISTORY_FIELDS>
 export type V3HistoryPoint = Row<V3SwapEvent, typeof V3_HISTORY_FIELDS>
@@ -94,6 +105,48 @@ export function fetchV3History(
         }`,
         { tokenAddr, chainId },
         (r) => r.v3SwapEvents
+    )
+}
+
+/**
+ * Pre-aggregated native-price OHLC candles for a token at one timeframe, oldest first. `source`
+ * selects the bonding-curve ('bc') or graduated V3 ('v3') series; `duration` is the bucket size in
+ * seconds. Empty until the indexer has re-synced the candle tables — callers fall back to raw history.
+ */
+export function fetchTokenCandles(
+    client: PonderClient,
+    {
+        tokenAddr,
+        chainId,
+        source,
+        duration,
+        since,
+    }: { tokenAddr: string; chainId: number; source: 'bc' | 'v3'; duration: number; since: number }
+): Promise<TokenCandleRow[]> {
+    return client.fetchAllPages<{ tokenCandles: Page<TokenCandleRow> }, TokenCandleRow>(
+        `query TokenCandles(
+            $tokenAddr: String!, $chainId: Int!, $source: String!, $duration: Int!,
+            $since: Int!, $after: String
+        ) {
+            tokenCandles(
+                where: {
+                    tokenAddr: $tokenAddr
+                    chainId: $chainId
+                    source: $source
+                    duration: $duration
+                    bucketTs_gte: $since
+                }
+                orderBy: "bucketTs"
+                orderDirection: "asc"
+                limit: 1000
+                after: $after
+            ) {
+                pageInfo { hasNextPage endCursor }
+                items { ${sel(CANDLE_FIELDS)} }
+            }
+        }`,
+        { tokenAddr, chainId, source, duration, since },
+        (r) => r.tokenCandles
     )
 }
 

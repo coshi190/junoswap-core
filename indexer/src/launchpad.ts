@@ -12,6 +12,7 @@ import {
 } from '@coshi190/junoswap-sdk'
 import { CHAIN_IDS } from './chains.js'
 import { recordUserSwap } from './user-pnl.js'
+import { foldTokenCandle } from './candles.js'
 
 const MAINNET_ENABLED = isLaunchpadChain(CHAIN_IDS.bitkub)
 
@@ -44,6 +45,31 @@ function calculateMarketCapFromReserves(
 
 function calculateVolume(isBuy: boolean, amountIn: bigint, amountOut: bigint): bigint {
     return isBuy ? amountIn : amountOut
+}
+
+// Reserve-based price BEFORE the swap, used as the candle open for the first trade in a bucket
+// (mirrors the client's calculatePreSwapPrice). reserveIn/Out are post-swap; back out the trade.
+function calculatePreSwapPrice(
+    isBuy: boolean,
+    reserveIn: bigint,
+    reserveOut: bigint,
+    amountIn: bigint,
+    amountOut: bigint
+): number {
+    let preNative: bigint
+    let preToken: bigint
+    if (isBuy) {
+        preNative = reserveIn - amountIn
+        preToken = reserveOut + amountOut
+    } else {
+        preNative = reserveOut + amountOut
+        preToken = reserveIn - amountIn
+    }
+    if (preNative < 0n || preToken <= 0n) return 0
+    const effectiveReserve = parseFloat(formatEther(preNative + VIRTUAL_AMOUNT))
+    const tokenRes = parseFloat(formatEther(preToken))
+    if (tokenRes === 0) return 0
+    return effectiveReserve / tokenRes
 }
 
 function defaultSnapshot(tokenAddr: string, chainId: number) {
@@ -122,6 +148,26 @@ async function handleSwap({ event, context }: HandlerArgs, chainId: number) {
     const price = calculatePriceFromReserves(isBuy, BigInt(reserveIn), BigInt(reserveOut))
     const marketCap = calculateMarketCapFromReserves(isBuy, BigInt(reserveIn), BigInt(reserveOut))
     const volume = calculateVolume(isBuy, amountIn, amountOut)
+
+    // Fold into the token's bonding-curve native-price candles (source 'bc'), with the pre-swap
+    // price as the bucket open — the client stitches these with the 'v3' series at graduation.
+    const preSwapPrice = calculatePreSwapPrice(
+        isBuy,
+        BigInt(reserveIn),
+        BigInt(reserveOut),
+        BigInt(amountIn),
+        BigInt(amountOut)
+    )
+    await foldTokenCandle(
+        context,
+        chainId,
+        tokenAddrLower,
+        'bc',
+        timestamp,
+        price,
+        Number(formatEther(volume)),
+        preSwapPrice
+    )
     const creatorFeeShare = creatorFeeShareForSwap(amountIn)
     const creatorFeeNativeDelta = isBuy ? creatorFeeShare : 0n
     const creatorFeeTokenDelta = isBuy ? 0n : creatorFeeShare

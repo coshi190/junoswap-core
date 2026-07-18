@@ -1,5 +1,5 @@
 import type { PonderClient } from '../client.js'
-import type { V3Pool, V3PoolDayVolume, V3Token } from '../entities.js'
+import type { V3Pool, V3PoolDayVolume, V3PoolState, V3PoolTvlDay, V3Token } from '../entities.js'
 import { sel, type Items, type Row } from './internal.js'
 
 const POOL_FIELDS = [
@@ -26,9 +26,28 @@ const DAY_VOLUME_FIELDS = [
     'swapCount',
 ] as const satisfies readonly (keyof V3PoolDayVolume)[]
 
+const POOL_STATE_FIELDS = [
+    'poolAddress',
+    'reserve0',
+    'reserve1',
+    'sqrtPriceX96',
+    'tick',
+    'liquidity',
+] as const satisfies readonly (keyof V3PoolState)[]
+
+const POOL_TVL_DAY_FIELDS = [
+    'poolAddress',
+    'dayTimestamp',
+    'reserve0',
+    'reserve1',
+    'sqrtPriceX96',
+] as const satisfies readonly (keyof V3PoolTvlDay)[]
+
 export type V3PoolRow = Row<V3Pool, typeof POOL_FIELDS>
 export type V3TokenRow = Row<V3Token, typeof TOKEN_FIELDS>
 export type V3PoolDayVolumeRow = Row<V3PoolDayVolume, typeof DAY_VOLUME_FIELDS>
+export type V3PoolStateRow = Row<V3PoolState, typeof POOL_STATE_FIELDS>
+export type V3PoolTvlDayRow = Row<V3PoolTvlDay, typeof POOL_TVL_DAY_FIELDS>
 
 export async function fetchV3Pools(
     client: PonderClient,
@@ -95,6 +114,58 @@ export async function fetchV3PoolDayVolumes(
         { chainId, poolAddresses, since, limit }
     )
     return data.v3PoolDayVolumes.items
+}
+
+/**
+ * Current indexed reserves + latest state for the given pools. Only pools tracked from creation
+ * (junoswap V3) have a row — callers should fall back to an on-chain balanceOf for the rest.
+ */
+export async function fetchV3PoolReserves(
+    client: PonderClient,
+    { chainId, poolAddresses, limit = 1000 }: { chainId: number; poolAddresses: string[]; limit?: number }
+): Promise<V3PoolStateRow[]> {
+    if (poolAddresses.length === 0) return []
+    const data = await client.request<{ v3PoolStates: Items<V3PoolStateRow> }>(
+        `query V3PoolStates($chainId: Int!, $poolAddresses: [String!], $limit: Int!) {
+            v3PoolStates(
+                where: { chainId: $chainId, poolAddress_in: $poolAddresses }
+                limit: $limit
+            ) { items { ${sel(POOL_STATE_FIELDS)} } }
+        }`,
+        { chainId, poolAddresses, limit }
+    )
+    return data.v3PoolStates.items
+}
+
+/** Daily liquidity-state snapshots (reserves + end-of-day sqrtPrice) for a TVL history series. */
+export async function fetchV3PoolTvlDays(
+    client: PonderClient,
+    {
+        chainId,
+        poolAddresses,
+        since,
+        limit = 1000,
+    }: { chainId: number; poolAddresses: string[]; since: number; limit?: number }
+): Promise<V3PoolTvlDayRow[]> {
+    if (poolAddresses.length === 0) return []
+    const data = await client.request<{ v3PoolTvlDays: Items<V3PoolTvlDayRow> }>(
+        `query V3PoolTvlDays(
+            $chainId: Int!, $poolAddresses: [String!], $since: Int!, $limit: Int!
+        ) {
+            v3PoolTvlDays(
+                where: {
+                    chainId: $chainId
+                    poolAddress_in: $poolAddresses
+                    dayTimestamp_gte: $since
+                }
+                orderBy: "dayTimestamp"
+                orderDirection: "desc"
+                limit: $limit
+            ) { items { ${sel(POOL_TVL_DAY_FIELDS)} } }
+        }`,
+        { chainId, poolAddresses, since, limit }
+    )
+    return data.v3PoolTvlDays.items
 }
 
 /**

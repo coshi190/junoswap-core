@@ -199,6 +199,53 @@ export const v3PoolDayVolume = onchainTable('v3_pool_day_volume', (t) => ({
     updatedAt: t.integer().notNull(),
 }))
 
+// Running reserve + latest-state accumulator, one row per pool. `reserve0/1` are the pool
+// contract's token balances, reconstructed from Swap/Mint/Collect deltas (kub RPC isn't a full
+// archive node, so historical balanceOf can't be backfilled — reserves must be event-derived).
+export const v3PoolState = onchainTable('v3_pool_state', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${poolAddress}`
+    chainId: t.integer().notNull(),
+    poolAddress: t.text().notNull(),
+    reserve0: t.text().notNull().default('0'),
+    reserve1: t.text().notNull().default('0'),
+    sqrtPriceX96: t.text().notNull().default('0'),
+    tick: t.integer(),
+    liquidity: t.text().notNull().default('0'),
+    updatedAt: t.integer().notNull(),
+}))
+
+// Daily liquidity-state snapshot — mirrors v3PoolDayVolume, but a level (last-write-wins for the
+// day) rather than a sum. `sqrtPriceX96` is the end-of-day price, for valuing native-leg pools and
+// deriving the token0/token1 pool price.
+export const v3PoolTvlDay = onchainTable('v3_pool_tvl_day', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${poolAddress}-${dayTimestamp}`
+    chainId: t.integer().notNull(),
+    poolAddress: t.text().notNull(),
+    dayTimestamp: t.integer().notNull(),
+    reserve0: t.text().notNull(),
+    reserve1: t.text().notNull(),
+    sqrtPriceX96: t.text().notNull(),
+    updatedAt: t.integer().notNull(),
+}))
+
+// Per-token native-denominated OHLC candles, one row per (token, source, timeframe, bucket).
+// `source` separates the bonding-curve series (reserve price) from the graduated V3 series
+// (sqrtPrice) so the client can stitch them at graduation. Prices/volume are chart-precision doubles.
+export const tokenCandle = onchainTable('token_candle', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${tokenAddr}-${source}-${duration}-${bucketTs}`
+    chainId: t.integer().notNull(),
+    tokenAddr: t.text().notNull(),
+    source: t.text().notNull(),
+    duration: t.integer().notNull(),
+    bucketTs: t.integer().notNull(),
+    open: t.doublePrecision().notNull(),
+    high: t.doublePrecision().notNull(),
+    low: t.doublePrecision().notNull(),
+    close: t.doublePrecision().notNull(),
+    volumeNative: t.doublePrecision().notNull().default(0),
+    updatedAt: t.integer().notNull(),
+}))
+
 export const nativeUsdPrice = onchainTable('native_usd_price', (t) => ({
     chainId: t.integer().primaryKey(),
     price: t.text().notNull(),
