@@ -271,6 +271,29 @@ export const v3TokenSnapshot = onchainTable('v3_token_snapshot', (t) => ({
     updatedAt: t.integer().notNull(),
 }))
 
+// LP mining incentives, discovered from the V3 staker's IncentiveCreated. Holds only the immutable
+// key plus its creation/refund amounts — the live struct (totalRewardUnclaimed, numberOfStakes)
+// stays an on-chain read, since the staker decrements it using accrual math we'd have to
+// reimplement against pool oracle state to reproduce here.
+//
+// isActive/isEnded are deliberately absent: they're clock-derived from startTime/endTime and
+// would freeze at index time as columns. Consumers compute them at render.
+export const incentive = onchainTable('incentive', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${incentiveId}`
+    chainId: t.integer().notNull(),
+    incentiveId: t.text().notNull(), // derived — IncentiveCreated doesn't emit it
+    rewardToken: t.text().notNull(),
+    pool: t.text().notNull(),
+    startTime: t.integer().notNull(),
+    endTime: t.integer().notNull(),
+    refundee: t.text().notNull(),
+    reward: t.text().notNull(), // initial reward funded at creation
+    refunded: t.text().notNull().default('0'),
+    endedAt: t.integer(), // null until IncentiveEnded
+    createdAtBlock: t.integer().notNull(),
+    createdAtTimestamp: t.integer().notNull(),
+}))
+
 export const referralBinding = onchainTable('referral_binding', (t) => ({
     referee: t.text().primaryKey(),
     referrer: t.text().notNull(),

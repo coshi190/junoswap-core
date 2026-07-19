@@ -25,6 +25,20 @@ export const AGG_ROUTER_DEPLOYMENTS: Record<number, Deployment> = {
 }
 
 /**
+ * Indexing start blocks for the V3 staker. Only the block lives here — the addresses stay solely
+ * in dex-config (`getV3StakerAddress`) so the two can't drift.
+ *
+ * Bitkub's RPCs reject historical `eth_getCode`, so 25925/96 could not be binary-searched; these
+ * are the blocks of each staker's first emitted log, which is an inclusive lower bound for any
+ * IncentiveCreated. 8899 is the true deployment block.
+ */
+export const V3_STAKER_START_BLOCKS: Record<number, number> = {
+    [CHAIN_IDS.kubTestnet]: 25824963,
+    [CHAIN_IDS.bitkub]: 28844994,
+    [CHAIN_IDS.jbc]: 4990196,
+}
+
+/**
  * Default launchpad chain — the fallback when no wallet is connected, and for server paths
  * with no connected chain. Client code should prefer the connected chainId and resolve
  * through getBondingCurveAddress().

@@ -10,10 +10,13 @@ import {
     UNISWAP_V2_PAIR_ABI,
     UNISWAP_V3_FACTORY_ABI,
     UNISWAP_V3_POOL_ABI,
+    UNISWAP_V3_STAKER_ABI,
+    V3_STAKER_START_BLOCKS,
     getAggRouterAddress,
     getBondingCurveAddress,
     getV2Config,
     getV3Config,
+    getV3StakerAddress,
     type DEXType,
 } from '@coshi190/junoswap-sdk'
 import { CHAIN_IDS, DEFAULT_RPC_URLS } from './src/chains.js'
@@ -44,6 +47,12 @@ function v3Factory(chainId: number, dexId: DEXType): `0x${string}` {
 function v3PositionManager(chainId: number, dexId: DEXType): `0x${string}` {
     const address = getV3Config(chainId, dexId)?.positionManager
     if (!address) throw new Error(`No positionManager for ${dexId} on chain ${chainId}`)
+    return address
+}
+
+function v3Staker(chainId: number, dexId: DEXType): `0x${string}` {
+    const address = getV3StakerAddress(chainId, dexId)
+    if (!address) throw new Error(`No V3 staker for ${dexId} on chain ${chainId}`)
     return address
 }
 
@@ -206,6 +215,24 @@ export default createConfig({
             chain: 'jbc',
             address: v3PositionManager(CHAIN_IDS.jbc, 'junoswap'),
             startBlock: V3_JBC_START,
+        },
+        V3Staker: {
+            abi: UNISWAP_V3_STAKER_ABI,
+            chain: 'kubTestnet',
+            address: v3Staker(CHAIN_IDS.kubTestnet, 'junoswap'),
+            startBlock: V3_STAKER_START_BLOCKS[CHAIN_IDS.kubTestnet]!,
+        },
+        V3StakerBitkub: {
+            abi: UNISWAP_V3_STAKER_ABI,
+            chain: 'bitkub',
+            address: v3Staker(CHAIN_IDS.bitkub, 'junoswap'),
+            startBlock: V3_STAKER_START_BLOCKS[CHAIN_IDS.bitkub]!,
+        },
+        V3StakerJbc: {
+            abi: UNISWAP_V3_STAKER_ABI,
+            chain: 'jbc',
+            address: v3Staker(CHAIN_IDS.jbc, 'junoswap'),
+            startBlock: V3_STAKER_START_BLOCKS[CHAIN_IDS.jbc]!,
         },
         JibswapFactory: {
             abi: UNISWAP_V2_FACTORY_ABI,

@@ -1,5 +1,10 @@
 import { createPublicClient, http } from 'viem'
-import { ERC20_ABI, NONFUNGIBLE_POSITION_MANAGER_ABI, getV3Config } from '@coshi190/junoswap-sdk'
+import {
+    ERC20_ABI,
+    NONFUNGIBLE_POSITION_MANAGER_ABI,
+    UNISWAP_V3_POOL_ABI,
+    getV3Config,
+} from '@coshi190/junoswap-sdk'
 
 const RPC_URLS: Record<number, string> = {
     25925: process.env.PONDER_RPC_URL_25925 ?? 'https://rpc-testnet.bitkubchain.io',
@@ -34,6 +39,48 @@ export async function readERC20Metadata(
         return { name: name as string, symbol: symbol as string, decimals: decimals as number }
     } catch {
         return { name: '', symbol: '', decimals: 18 }
+    }
+}
+
+/**
+ * A V3 pool's immutables, read at latest for the same reason readPosition does. Used only as a
+ * fallback when an incentive names a pool that isn't in the v3Pool table — e.g. a pool created
+ * before the configured start block, or one belonging to a protocol we don't index. Without it
+ * such an incentive would join to nothing and silently vanish from the UI.
+ */
+export async function readV3PoolImmutables(
+    chainId: number,
+    address: string
+): Promise<{ token0: string; token1: string; fee: number; tickSpacing: number } | null> {
+    const client = getClient(chainId)
+    const addr = address as `0x${string}`
+    try {
+        const [token0, token1, fee, tickSpacing] = await Promise.all([
+            client.readContract({
+                abi: UNISWAP_V3_POOL_ABI,
+                functionName: 'token0',
+                address: addr,
+            }),
+            client.readContract({
+                abi: UNISWAP_V3_POOL_ABI,
+                functionName: 'token1',
+                address: addr,
+            }),
+            client.readContract({ abi: UNISWAP_V3_POOL_ABI, functionName: 'fee', address: addr }),
+            client.readContract({
+                abi: UNISWAP_V3_POOL_ABI,
+                functionName: 'tickSpacing',
+                address: addr,
+            }),
+        ])
+        return {
+            token0: (token0 as string).toLowerCase(),
+            token1: (token1 as string).toLowerCase(),
+            fee: Number(fee),
+            tickSpacing: Number(tickSpacing),
+        }
+    } catch {
+        return null
     }
 }
 

@@ -20,6 +20,22 @@ export interface AggSwapEvent {
     transactionHash: string
 }
 
+export interface Incentive {
+    id: string
+    chainId: number
+    incentiveId: string
+    rewardToken: string
+    pool: string
+    startTime: number
+    endTime: number
+    refundee: string
+    reward: string
+    refunded: string
+    endedAt: number | null
+    createdAtBlock: number
+    createdAtTimestamp: number
+}
+
 export interface LaunchToken {
     tokenAddr: string
     chainId: number
@@ -75,6 +91,21 @@ export interface SwapEvent {
     transactionHash: string
 }
 
+export interface TokenCandle {
+    id: string
+    chainId: number
+    tokenAddr: string
+    source: string
+    duration: number
+    bucketTs: number
+    open: number
+    high: number
+    low: number
+    close: number
+    volumeNative: number
+    updatedAt: number
+}
+
 export interface TokenHolder {
     id: string
     chainId: number
@@ -102,21 +133,6 @@ export interface TokenSnapshot {
     price1dAgo: string | null
     price1dAgoTimestamp: number | null
     priceChange1dPct: string | null
-    updatedAt: number
-}
-
-export interface TokenCandle {
-    id: string
-    chainId: number
-    tokenAddr: string
-    source: string
-    duration: number
-    bucketTs: number
-    open: number
-    high: number
-    low: number
-    close: number
-    volumeNative: number
     updatedAt: number
 }
 
@@ -300,6 +316,7 @@ export interface V3TokenSnapshot {
 /** GraphQL root field -> entity, for reference. Ponder pluralises a table as tsName + "s". */
 export interface PonderRootFields {
     aggSwapEvents: 'AggSwapEvent'
+    incentives: 'Incentive'
     launchTokens: 'LaunchToken'
     nativeUsdPrices: 'NativeUsdPrice'
     nativeUsdPriceSnapshots: 'NativeUsdPriceSnapshot'
