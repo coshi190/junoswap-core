@@ -294,6 +294,19 @@ export const incentive = onchainTable('incentive', (t) => ({
     createdAtTimestamp: t.integer().notNull(),
 }))
 
+// V3 staker deposits, tracked from DepositTransferred. The staker emits it on deposit
+// (oldOwner = 0), on transfer between owners, and on withdraw (newOwner = 0), so a single
+// last-write-wins `owner` column carries the full state — a live deposit is any row whose owner
+// is not the zero address. numberOfStakes is deliberately absent: it's live struct state, read
+// on-chain alongside stakes().
+export const deposit = onchainTable('deposit', (t) => ({
+    id: t.text().primaryKey(), // `${chainId}-${tokenId}`
+    chainId: t.integer().notNull(),
+    tokenId: t.text().notNull(),
+    owner: t.text().notNull(), // lowercased; zero address once withdrawn
+    updatedAt: t.integer().notNull(),
+}))
+
 export const referralBinding = onchainTable('referral_binding', (t) => ({
     referee: t.text().primaryKey(),
     referrer: t.text().notNull(),

@@ -20,6 +20,14 @@ export interface AggSwapEvent {
     transactionHash: string
 }
 
+export interface Deposit {
+    id: string
+    chainId: number
+    tokenId: string
+    owner: string
+    updatedAt: number
+}
+
 export interface Incentive {
     id: string
     chainId: number
@@ -316,6 +324,7 @@ export interface V3TokenSnapshot {
 /** GraphQL root field -> entity, for reference. Ponder pluralises a table as tsName + "s". */
 export interface PonderRootFields {
     aggSwapEvents: 'AggSwapEvent'
+    deposits: 'Deposit'
     incentives: 'Incentive'
     launchTokens: 'LaunchToken'
     nativeUsdPrices: 'NativeUsdPrice'

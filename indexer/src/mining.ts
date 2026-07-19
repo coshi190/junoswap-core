@@ -94,11 +94,36 @@ async function handleIncentiveEnded(context: any, chainId: number, event: any) {
     })
 }
 
+/**
+ * Last-write-wins on the deposit's owner. Unlike the incentive handlers this must upsert rather
+ * than insert-or-ignore: the staker re-emits DepositTransferred for the same tokenId on every
+ * transfer and again on withdraw (newOwner = 0), and each one supersedes the last.
+ */
+async function handleDepositTransferred(context: any, chainId: number, event: any) {
+    const { tokenId, newOwner } = event.args
+    const owner = newOwner.toLowerCase()
+    const updatedAt = Number(event.block.timestamp)
+
+    await context.db
+        .insert(schema.deposit)
+        .values({
+            id: `${chainId}-${tokenId}`,
+            chainId,
+            tokenId: tokenId.toString(),
+            owner,
+            updatedAt,
+        })
+        .onConflictDoUpdate({ owner, updatedAt })
+}
+
 ponder.on('V3Staker:IncentiveCreated', ({ event, context }) =>
     handleIncentiveCreated(context, 25925, event)
 )
 ponder.on('V3Staker:IncentiveEnded', ({ event, context }) =>
     handleIncentiveEnded(context, 25925, event)
+)
+ponder.on('V3Staker:DepositTransferred', ({ event, context }) =>
+    handleDepositTransferred(context, 25925, event)
 )
 
 ponder.on('V3StakerBitkub:IncentiveCreated', ({ event, context }) =>
@@ -107,10 +132,16 @@ ponder.on('V3StakerBitkub:IncentiveCreated', ({ event, context }) =>
 ponder.on('V3StakerBitkub:IncentiveEnded', ({ event, context }) =>
     handleIncentiveEnded(context, 96, event)
 )
+ponder.on('V3StakerBitkub:DepositTransferred', ({ event, context }) =>
+    handleDepositTransferred(context, 96, event)
+)
 
 ponder.on('V3StakerJbc:IncentiveCreated', ({ event, context }) =>
     handleIncentiveCreated(context, 8899, event)
 )
 ponder.on('V3StakerJbc:IncentiveEnded', ({ event, context }) =>
     handleIncentiveEnded(context, 8899, event)
+)
+ponder.on('V3StakerJbc:DepositTransferred', ({ event, context }) =>
+    handleDepositTransferred(context, 8899, event)
 )
