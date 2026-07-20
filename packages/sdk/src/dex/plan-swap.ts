@@ -7,7 +7,7 @@ import {
     getV3Config,
     type DEXType,
 } from '../configs/dex-config.js'
-import { appendTrackingTag } from '../shared/tracking.js'
+import { appendTrackingTag } from '../rewards/tracking.js'
 import {
     getSwapAddress,
     getWrapOperation,

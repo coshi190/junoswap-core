@@ -2,11 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
     computePoints,
     computeReferralPoints,
-    aggregatePointsByAddress,
-    type SwapEventRow,
-} from '../leaderboard/points'
-
-const TOKEN = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    isJunoswapProtocol,
+} from '../rewards/points.js'
 
 describe('computePoints', () => {
     it('scores junoswap volume at 1 point per 50 native', () => {
@@ -38,39 +35,13 @@ describe('computeReferralPoints', () => {
     })
 })
 
-describe('aggregatePointsByAddress', () => {
-    const NATIVE_100 = '100000000000000000000' // 100e18
-    const NATIVE_500 = '500000000000000000000' // 500e18
-
-    it('splits volume by source, lowercases addresses, and floors points once', () => {
-        const rows: SwapEventRow[] = [
-            // junoswap buy: native paid is amountIn (100 native, full rate)
-            {
-                tokenAddr: TOKEN,
-                sender: '0xABC',
-                isBuy: 1,
-                amountIn: NATIVE_100,
-                amountOut: '5',
-                timestamp: 100,
-                protocol: 'junoswap',
-            },
-            // external sell: native received is amountOut (500 native, 10x discount)
-            {
-                tokenAddr: TOKEN,
-                sender: '0xabc',
-                isBuy: 0,
-                amountIn: '7',
-                amountOut: NATIVE_500,
-                timestamp: 200,
-                protocol: 'jibswap',
-            },
-        ]
-        const agg = aggregatePointsByAddress(rows).get('0xabc')!
-        // displayed volume is the real total (no discount): 100 + 500
-        expect(agg.volumeNative).toBe(600)
-        // points discount external: floor(100/50 + 500/500) = floor(2 + 1) = 3
-        expect(agg.points).toBe(computePoints(100, 500))
-        expect(agg.points).toBe(3)
-        expect(agg).toMatchObject({ tradeCount: 2, buyCount: 1, sellCount: 1 })
+describe('isJunoswapProtocol', () => {
+    it('counts only junoswap as the first-party venue', () => {
+        expect(isJunoswapProtocol('junoswap')).toBe(true)
+        // everything else is external, including the parser fallback for an unlabelled V2 swap
+        expect(isJunoswapProtocol('jibswap')).toBe(false)
+        expect(isJunoswapProtocol('kublerx')).toBe(false)
+        expect(isJunoswapProtocol('unknown')).toBe(false)
+        expect(isJunoswapProtocol('')).toBe(false)
     })
 })

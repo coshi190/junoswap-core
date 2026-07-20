@@ -5,7 +5,7 @@ import {
     computeVolumeFromPrices,
     computePoolVolumesUsd,
     type PoolVolumeMeta,
-} from '../volume/pool-volume-math'
+} from '../pool/pool-volume-math'
 import type { V3PoolDayVolumeRow } from '../ponder/queries/pools'
 
 const Q96 = 2n ** 96n

@@ -1,11 +1,11 @@
 import { formatEther } from 'viem'
-import { deriveNativeUsdPrice, type PoolVolumeMeta } from '../volume/pool-volume-math.js'
+import { deriveNativeUsdPrice, type PoolVolumeMeta } from './pool-volume-math.js'
 
 const Q96 = 2n ** 96n
 
 /**
- * Minimal pool shape the TVL math needs — identical to {@link PoolVolumeMeta}, re-exported here so
- * TVL callers don't reach into the volume module. `V3PoolData` (frontend) satisfies it structurally.
+ * Minimal pool shape the TVL math needs — identical to {@link PoolVolumeMeta}, re-exported here for
+ * convenience. `V3PoolData` (frontend) satisfies it structurally.
  */
 export type PoolTvlMeta = PoolVolumeMeta
 

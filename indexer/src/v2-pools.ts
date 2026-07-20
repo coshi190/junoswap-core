@@ -155,7 +155,8 @@ async function recordV2SwapEvent(context: any, chainId: number, event: any, dex:
             parsed.amountOut,
             tokenRec?.decimals ?? 18,
             nativeUsd,
-            timestamp
+            timestamp,
+            parsed.protocol
         )
     }
 }

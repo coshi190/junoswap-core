@@ -7,6 +7,7 @@ import {
     finalizeTokenPnl,
     finalizePortfolioPnl,
     computeWindowedTraderStats,
+    computePoints,
     parseV2Swap,
     parseV3Swap,
     makePriceAt,
@@ -31,7 +32,7 @@ app.use('/graphql', graphql({ db, schema }))
 // The swap handlers accumulate an average-cost fold per (user, token) in `userTokenPnl` and
 // leaderboard counters in `userStat`. These routes finalize that fold at read time against the
 // latest indexed token price, so unrealized PnL tracks the market rather than freezing at the
-// user's last trade. See packages/sdk/src/leaderboard/pnl.ts for the accounting.
+// user's last trade. See packages/sdk/src/pnl/fold.ts for the accounting.
 
 /**
  * A number string of '0'/''/undefined means "no price"; anything positive and in-band is a real USD
@@ -152,6 +153,7 @@ async function windowedLeaderboardTraders(chainId: number, since: number) {
             amountIn: r.amountIn,
             amountOut: r.amountOut,
             timestamp: r.timestamp,
+            protocol: 'junoswap', // bonding curve is Junoswap's own venue
         })
     }
     if (wn) {
@@ -165,6 +167,7 @@ async function windowedLeaderboardTraders(chainId: number, since: number) {
                     amountIn: p.amountIn,
                     amountOut: p.amountOut,
                     timestamp: p.timestamp,
+                    protocol: p.protocol,
                 })
             }
         }
@@ -178,6 +181,7 @@ async function windowedLeaderboardTraders(chainId: number, since: number) {
                     amountIn: p.amountIn,
                     amountOut: p.amountOut,
                     timestamp: p.timestamp,
+                    protocol: p.protocol,
                 })
             }
         }
@@ -265,6 +269,9 @@ app.get('/leaderboard', async (c) => {
             pnlUsd: agg.pnlUsd,
             pnlPercent: agg.investedUsd > 0 ? (agg.pnlUsd / agg.investedUsd) * 100 : 0,
             volumeNative: s.volumeNative,
+            junoVolumeNative: s.junoVolumeNative,
+            externalVolumeNative: s.externalVolumeNative,
+            points: computePoints(s.junoVolumeNative, s.externalVolumeNative),
             tradeCount: s.tradeCount,
             buyCount: s.buyCount,
             sellCount: s.sellCount,

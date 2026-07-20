@@ -7,7 +7,7 @@ import {
     JUNOSWAP_CALLDATA_MARKER,
     parseTrackingTag,
     resolveBinding,
-} from '../shared/tracking'
+} from '../rewards/tracking.js'
 import type { Address } from 'viem'
 
 const REF: Address = '0x1111111111111111111111111111111111111111'

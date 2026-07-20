@@ -3,6 +3,7 @@ import schema from 'ponder:schema'
 import { formatEther } from 'viem'
 import {
     applyFoldEvent,
+    isJunoswapProtocol,
     sanitizeUsdPrice,
     MAX_NATIVE_USD_PRICE,
     EMPTY_FOLD,
@@ -14,7 +15,9 @@ import {
  * counters (`userStat`). Called from every swap handler once the swap has been resolved to its
  * native/token legs. `amountInWei`/`amountOutWei` follow the leg convention in
  * `@coshi190/junoswap-sdk`'s `ParsedSwap`: native-in/token-out on a buy, token-in/native-out on a
- * sell. `decimals` is the token leg's real decimals so `position` stays in human units.
+ * sell. `decimals` is the token leg's real decimals so `position` stays in human units. `protocol`
+ * is the venue id (`'junoswap'`, a V2 dex id, `'kublerx'`, …); it splits the folded volume so points
+ * can be served without re-scanning raw swaps.
  */
 export async function recordUserSwap(
     context: any,
@@ -26,7 +29,8 @@ export async function recordUserSwap(
     amountOutWei: string,
     decimals: number,
     nativeUsd: number,
-    timestamp: number
+    timestamp: number,
+    protocol: string
 ): Promise<void> {
     const t = tokenAddr.toLowerCase()
     const u = user.toLowerCase()
@@ -77,11 +81,16 @@ export async function recordUserSwap(
 
     // --- leaderboard counters ---
     const volumeNative = parseFloat(formatEther(BigInt(isBuy ? amountInWei : amountOutWei)))
+    const isJuno = isJunoswapProtocol(protocol)
+    const junoVolumeNative = isJuno ? volumeNative : 0
+    const externalVolumeNative = isJuno ? 0 : volumeNative
     const statId = `${chainId}-${u}`
     const stat = await context.db.find(schema.userStat, { id: statId })
     if (stat) {
         await context.db.update(schema.userStat, { id: statId }).set({
             volumeNative: stat.volumeNative + volumeNative,
+            junoVolumeNative: stat.junoVolumeNative + junoVolumeNative,
+            externalVolumeNative: stat.externalVolumeNative + externalVolumeNative,
             tradeCount: stat.tradeCount + 1,
             buyCount: stat.buyCount + (isBuy ? 1 : 0),
             sellCount: stat.sellCount + (isBuy ? 0 : 1),
@@ -95,6 +104,8 @@ export async function recordUserSwap(
                 chainId,
                 user: u,
                 volumeNative,
+                junoVolumeNative,
+                externalVolumeNative,
                 tradeCount: 1,
                 buyCount: isBuy ? 1 : 0,
                 sellCount: isBuy ? 0 : 1,

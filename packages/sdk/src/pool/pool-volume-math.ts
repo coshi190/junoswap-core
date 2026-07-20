@@ -1,5 +1,5 @@
 import { formatEther } from 'viem'
-import { MAX_NATIVE_USD_PRICE, sanitizeUsdPrice } from '../leaderboard/native-price.js'
+import { MAX_NATIVE_USD_PRICE, sanitizeUsdPrice } from '../price/history.js'
 import type { V3PoolDayVolumeRow } from '../ponder/queries/pools.js'
 
 const Q96 = 2n ** 96n

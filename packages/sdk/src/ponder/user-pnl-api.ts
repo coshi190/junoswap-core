@@ -1,4 +1,4 @@
-import type { TokenPnl, PortfolioPnlTotals } from '../leaderboard/pnl.js'
+import type { TokenPnl, PortfolioPnlTotals } from '../pnl/index.js'
 
 /**
  * REST clients for the indexer's finalize routes (`/user-pnl`, `/leaderboard`). Unlike the rest of
@@ -18,6 +18,10 @@ export interface LeaderboardTraderStat {
     pnlUsd: number
     pnlPercent: number
     volumeNative: number
+    /** Volume split by venue, and the points it scores — both branches of `/leaderboard` return these. */
+    junoVolumeNative: number
+    externalVolumeNative: number
+    points: number
     tradeCount: number
     buyCount: number
     sellCount: number

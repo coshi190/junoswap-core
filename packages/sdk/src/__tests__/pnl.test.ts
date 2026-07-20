@@ -5,13 +5,11 @@ import {
     finalizeTokenPnl,
     finalizePortfolioPnl,
     computePortfolioPnl,
-    computeWindowedTraderStats,
     EMPTY_FOLD,
     type PnlFold,
     type FoldSwapInput,
     type PnlSwapEvent,
-    type LeaderboardSwapEvent,
-} from '../leaderboard/pnl.js'
+} from '../pnl/index.js'
 
 // Build a single-token fold from a list of swaps, valuing each at its supplied native→USD rate.
 function fold(events: FoldSwapInput[], decimals = 18): PnlFold {
@@ -36,7 +34,7 @@ function sell(tokens: number, kub: number, nativeUsd: number): FoldSwapInput {
     }
 }
 
-describe('leaderboard/pnl fold + finalize', () => {
+describe('pnl fold + finalize', () => {
     it('buy-only: unrealized only, no realized', () => {
         // invested 10 KUB * $2 = $20, avg cost $0.2/token; balance 100 @ $0.5 = $50 value
         const pnl = finalizeTokenPnl(fold([buy(100, 10, 2)]), 100, 0.5)
@@ -126,11 +124,8 @@ describe('leaderboard/pnl fold + finalize', () => {
     })
 })
 
-describe('leaderboard/pnl batch engines', () => {
+describe('pnl batch engine', () => {
     const TOKEN = '0xtoken'
-    const ALICE = '0xalice'
-    const BOB = '0xbob'
-    const flatRate = (_t: number) => 2
 
     function bEvent(tokens: number, kub: number, timestamp: number): PnlSwapEvent {
         return {
@@ -141,16 +136,6 @@ describe('leaderboard/pnl batch engines', () => {
             timestamp,
         }
     }
-    function sEvent(tokens: number, kub: number, timestamp: number): PnlSwapEvent {
-        return {
-            tokenAddr: TOKEN,
-            isBuy: false,
-            amountIn: parseEther(String(tokens)).toString(),
-            amountOut: parseEther(String(kub)).toString(),
-            timestamp,
-        }
-    }
-    const lb = (e: PnlSwapEvent, sender: string): LeaderboardSwapEvent => ({ ...e, sender })
 
     it('computePortfolioPnl values each buy at its historical rate', () => {
         const events = [bEvent(50, 10, 1), bEvent(50, 10, 2)]
@@ -163,24 +148,5 @@ describe('leaderboard/pnl batch engines', () => {
         )
         expect(perToken.get(TOKEN)!.totalInvestedUsd).toBeCloseTo(40) // $10 + $30, not 20*$3
         expect(perToken.get(TOKEN)!.unrealizedUsd).toBeCloseTo(10)
-    })
-
-    it('computeWindowedTraderStats folds in-window swaps, values the net position, isolates addresses', () => {
-        const events: LeaderboardSwapEvent[] = [
-            lb(bEvent(100, 10, 1), ALICE), // buy 100 for 10 KUB * $2 = $20, avg $0.2
-            lb(sEvent(50, 8, 2), ALICE), // sell 50 for 8 KUB * $2 = $16; realized $16 - $10 = $6
-            lb(bEvent(200, 30, 1), BOB),
-        ]
-        const prices = new Map([[TOKEN, 0.3]]) // remaining 50 @ $0.3 = $15, basis $10 -> unrealized $5
-        const stats = computeWindowedTraderStats(events, flatRate, prices)
-
-        // Balance comes from the in-window net position (100 - 50 = 50), not any passed-in balance.
-        expect(stats.get(ALICE)!.pnlUsd).toBeCloseTo(11) // realized $6 + unrealized $5
-        expect(stats.get(ALICE)!.volumeNative).toBeCloseTo(18)
-        expect(stats.get(ALICE)!.tradeCount).toBe(2)
-        expect(stats.get(ALICE)!.buyCount).toBe(1)
-        expect(stats.get(ALICE)!.sellCount).toBe(1)
-        expect(stats.get(BOB)!.volumeNative).toBeCloseTo(30)
-        expect(stats.get(ALICE)!.pnlUsd).not.toBeCloseTo(stats.get(BOB)!.pnlUsd)
     })
 })

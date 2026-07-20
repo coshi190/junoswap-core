@@ -189,7 +189,8 @@ async function handleSwap({ event, context }: HandlerArgs, chainId: number) {
         amountOut.toString(),
         18,
         nativeUsd,
-        timestamp
+        timestamp,
+        'junoswap' // the bonding curve is Junoswap's own venue; its swapEvent has no protocol column
     )
 
     const existingSnapshot = await context.db.find(schema.tokenSnapshot, {

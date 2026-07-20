@@ -432,7 +432,8 @@ export async function recordV3SwapEvent(
             parsed.amountOut,
             tokenRec?.decimals ?? 18,
             nativeUsd,
-            timestamp
+            timestamp,
+            parsed.protocol
         )
 
         // Fold the swap into the token's native-price candles (source 'v3'). Price and volume are in

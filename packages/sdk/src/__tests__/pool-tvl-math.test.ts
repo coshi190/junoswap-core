@@ -6,7 +6,7 @@ import {
     priceFromSqrtPriceX96,
     type PoolTvlMeta,
     type PoolBalances,
-} from '../pool-tvl/pool-tvl-math'
+} from '../pool/pool-tvl-math'
 
 const Q96 = 2n ** 96n
 const E18 = 10n ** 18n

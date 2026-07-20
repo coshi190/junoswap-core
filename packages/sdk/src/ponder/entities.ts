@@ -161,6 +161,8 @@ export interface UserStat {
     chainId: number
     user: string
     volumeNative: number
+    junoVolumeNative: number
+    externalVolumeNative: number
     tradeCount: number
     buyCount: number
     sellCount: number

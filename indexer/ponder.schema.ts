@@ -319,7 +319,7 @@ export const referralBinding = onchainTable('referral_binding', (t) => ({
 // human token units (formatUnits) so it lines up with a live balance; the USD fields are doubles.
 // doublePrecision (float8) matches JS `number` and the finalize step's `PnlFold` — float4/`real`
 // both loses precision and overflows (max ~3.4e38) on large cost pools. See
-// packages/sdk/src/leaderboard/pnl.ts for the accounting model.
+// packages/sdk/src/pnl/fold.ts for the accounting model.
 export const userTokenPnl = onchainTable('user_token_pnl', (t) => ({
     id: t.text().primaryKey(), // `${chainId}-${tokenAddr}-${user}`, all lowercased
     chainId: t.integer().notNull(),
@@ -334,12 +334,16 @@ export const userTokenPnl = onchainTable('user_token_pnl', (t) => ({
 
 // Per (chain, user) leaderboard counters folded alongside the PnL. `volumeNative` is the summed
 // native leg of every swap; PnL for the leaderboard is derived by finalizing that user's
-// userTokenPnl rows at read time.
+// userTokenPnl rows at read time. The juno/external split feeds `computePoints` (Junoswap volume
+// scores 10x external) and is kept here so points never require re-scanning raw swaps;
+// `volumeNative` stays the sum of the two.
 export const userStat = onchainTable('user_stat', (t) => ({
     id: t.text().primaryKey(), // `${chainId}-${user}`, lowercased
     chainId: t.integer().notNull(),
     user: t.text().notNull(),
     volumeNative: t.doublePrecision().notNull().default(0),
+    junoVolumeNative: t.doublePrecision().notNull().default(0),
+    externalVolumeNative: t.doublePrecision().notNull().default(0),
     tradeCount: t.integer().notNull().default(0),
     buyCount: t.integer().notNull().default(0),
     sellCount: t.integer().notNull().default(0),

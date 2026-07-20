@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseV3Swap, parseV2Swap } from '../leaderboard/swaps'
+import { parseV3Swap, parseV2Swap } from '../ponder/parse-swaps'
 
 const WN = '0x67ebd850304c70d983b2d1b93ea79c7cd6c3f6b5'
 const TOKEN = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
