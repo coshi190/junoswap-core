@@ -1,4 +1,5 @@
 import { formatEther, parseEther } from 'viem'
+import { bigIntSqrt } from '../pool/liquidity-math.js'
 
 /**
  * Protocol fee taken by `buy`/`sell` before the curve swap, in basis points. Mirrors the contract's
@@ -155,3 +156,36 @@ export function isSqrtPriceWithinTolerance(
  * corrects it with a nudge swap. 4% absorbs the rounding in the contract's sqrt seeding.
  */
 export const PRICE_TOLERANCE_BPS = 400n
+
+/**
+ * The sqrtPriceX96 a graduating token's V3 pool should be seeded at, from the curve's final reserves.
+ *
+ * Reserves are assigned to token0/token1 by canonical address order *before* the ratio is taken —
+ * getting that backwards inverts the price, which is how a past graduation shipped a pool at the
+ * reciprocal of its intended price. Scaling all the way up to Q192 before the integer sqrt keeps the
+ * Q96 result's precision; dividing first would truncate small ratios to zero and `initialize(0)`
+ * reverts. Result is clamped to uint160, the type the pool accepts.
+ */
+export function calculateGraduationSqrtPriceX96(
+    tokenAddr: `0x${string}`,
+    wrappedNative: `0x${string}`,
+    nativeReserve: bigint,
+    tokenReserve: bigint
+): bigint {
+    if (nativeReserve <= 0n || tokenReserve <= 0n) {
+        throw new Error('Invalid reserves for sqrtPriceX96 calculation')
+    }
+
+    const tokenIsToken0 = tokenAddr.toLowerCase() < wrappedNative.toLowerCase()
+
+    const amount0 = tokenIsToken0 ? tokenReserve : nativeReserve
+    const amount1 = tokenIsToken0 ? nativeReserve : tokenReserve
+
+    const Q192 = 2n ** 192n
+    const priceX192 = (amount1 * Q192) / amount0
+
+    const sqrtPriceX96 = bigIntSqrt(priceX192)
+
+    const MAX_UINT160 = (1n << 160n) - 1n
+    return sqrtPriceX96 > MAX_UINT160 ? MAX_UINT160 : sqrtPriceX96
+}

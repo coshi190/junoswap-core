@@ -8,6 +8,7 @@ import {
     calculateStableGraduationProgress,
     isReadyToGraduate,
     isSqrtPriceWithinTolerance,
+    calculateGraduationSqrtPriceX96,
     INITIAL_TOKEN_SUPPLY,
 } from '../launchpad/bonding-curve.js'
 
@@ -226,5 +227,68 @@ describe('isSqrtPriceWithinTolerance', () => {
 
     it('rejects one wei past the band', () => {
         expect(isSqrtPriceWithinTolerance(TARGET + 40_001n, TARGET, 400n)).toBe(false)
+    })
+})
+
+describe('calculateGraduationSqrtPriceX96', () => {
+    // Real stuck-token reserves: tokenAddr < wrappedNative, the ordering that shipped a bad pool.
+    const tokenAddr = '0x3671E189BFb60fB434A902F2274f6546FCE779db' as `0x${string}`
+    const wrappedNative = '0x700D3ba307E1256e509eD3E45D6f9dff441d6907' as `0x${string}`
+    const nativeReserve = 4009500000000000000000n // ~4010 KUB
+    const tokenReserve = 461366962461691276297068760n // ~461M tokens
+
+    it('stays non-zero where the contract formula truncated to 0', () => {
+        expect(
+            calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, nativeReserve, tokenReserve)
+        ).toBeGreaterThan(0n)
+    })
+
+    it('matches the value the rescue script computed for the stuck token', () => {
+        expect(
+            calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, nativeReserve, tokenReserve)
+        ).toBe(233561602564036164489853658n)
+    })
+
+    it('clamps to uint160, the type the pool accepts', () => {
+        const result = calculateGraduationSqrtPriceX96(
+            tokenAddr,
+            wrappedNative,
+            nativeReserve,
+            tokenReserve
+        )
+        expect(result).toBeLessThanOrEqual((1n << 160n) - 1n)
+    })
+
+    it('inverts the ratio when tokenAddr sorts above wrappedNative', () => {
+        const highAddr = '0x99999999990FC47611b74827486218f3398A4abD' as `0x${string}`
+        const low = calculateGraduationSqrtPriceX96(
+            tokenAddr,
+            wrappedNative,
+            nativeReserve,
+            tokenReserve
+        )
+        const high = calculateGraduationSqrtPriceX96(
+            highAddr,
+            wrappedNative,
+            nativeReserve,
+            tokenReserve
+        )
+        expect(high).toBeGreaterThan(0n)
+        expect(high).not.toBe(low)
+    })
+
+    it('throws for zero reserves', () => {
+        expect(() =>
+            calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, 0n, tokenReserve)
+        ).toThrow('Invalid reserves')
+        expect(() =>
+            calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, nativeReserve, 0n)
+        ).toThrow('Invalid reserves')
+    })
+
+    it('depends only on the reserve ratio, not its magnitude', () => {
+        expect(calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, 1000n, 2000n)).toBe(
+            calculateGraduationSqrtPriceX96(tokenAddr, wrappedNative, 1000000n, 2000000n)
+        )
     })
 })
